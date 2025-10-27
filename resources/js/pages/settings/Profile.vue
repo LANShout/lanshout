@@ -77,6 +77,23 @@ const user = page.props.auth.user;
                         <InputError class="mt-2" :message="errors.email" />
                     </div>
 
+                    <div class="grid gap-2">
+                        <Label for="chat_color">Chat Username Color</Label>
+                        <div class="flex items-center gap-3">
+                            <Input
+                                id="chat_color"
+                                type="color"
+                                class="mt-1 h-10 w-20 cursor-pointer"
+                                name="chat_color"
+                                :default-value="user.chat_color || '#3b82f6'"
+                            />
+                            <span class="text-sm text-muted-foreground">
+                                Choose a color for your username in chat messages
+                            </span>
+                        </div>
+                        <InputError class="mt-2" :message="errors.chat_color" />
+                    </div>
+
                     <div v-if="mustVerifyEmail && !user.email_verified_at">
                         <p class="-mt-4 text-sm text-muted-foreground">
                             Your email address is unverified.

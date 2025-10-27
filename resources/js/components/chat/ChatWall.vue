@@ -1,7 +1,12 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref, watch, nextTick } from 'vue'
+import ChatMessage from './ChatMessage.vue'
 
-type User = { id: number; name: string }
+type User = {
+  id: number
+  name: string
+  chat_color?: string | null
+}
 
 type Message = {
   id: number
@@ -17,21 +22,34 @@ const props = defineProps<{
 }>()
 
 const ordered = computed(() => props.messages)
+const messagesContainer = ref<HTMLElement | null>(null)
+
+// Auto-scroll to bottom when new messages arrive
+watch(() => props.messages.length, async () => {
+  await nextTick()
+  if (messagesContainer.value) {
+    messagesContainer.value.scrollTop = messagesContainer.value.scrollHeight
+  }
+})
 </script>
 
 <template>
-  <div class="flex min-h-40 flex-col gap-2 rounded-md border border-sidebar-border/70 p-3 dark:border-sidebar-border">
-    <div v-if="loading" class="text-sm text-muted-foreground">Loading…</div>
-    <div v-else-if="error" class="text-sm text-red-600 dark:text-red-400">{{ error }}</div>
-    <div v-else class="flex flex-col gap-2">
-      <div v-if="!ordered.length" class="text-sm text-muted-foreground">No messages yet. Be the first to say hi!</div>
-      <div v-for="m in ordered" :key="m.id" class="flex flex-col rounded bg-black/2 p-2 dark:bg-white/5">
-        <div class="text-xs text-muted-foreground">
-          <span class="font-medium text-foreground">{{ m.user?.name ?? 'User' }}</span>
-          <span class="ml-2">{{ new Date(m.created_at).toLocaleTimeString() }}</span>
-        </div>
-        <div class="whitespace-pre-wrap break-words text-sm">{{ m.body }}</div>
+  <div class="flex h-[500px] flex-col rounded-md border border-sidebar-border/70 dark:border-sidebar-border">
+    <div v-if="loading" class="flex items-center justify-center p-3 text-sm text-muted-foreground">Loading…</div>
+    <div v-else-if="error" class="flex items-center justify-center p-3 text-sm text-red-600 dark:text-red-400">{{ error }}</div>
+    <div
+      v-else
+      ref="messagesContainer"
+      class="flex flex-1 flex-col gap-2 overflow-y-auto p-3"
+    >
+      <div v-if="!ordered.length" class="flex items-center justify-center text-sm text-muted-foreground">
+        No messages yet. Be the first to say hi!
       </div>
+      <ChatMessage
+        v-for="m in ordered"
+        :key="m.id"
+        :message="m"
+      />
     </div>
   </div>
 </template>

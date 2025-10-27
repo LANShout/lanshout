@@ -5,6 +5,8 @@ use Inertia\Inertia;
 use Laravel\Fortify\Features;
 use App\Http\Controllers\MessageController;
 use App\Http\Controllers\Admin\UserController;
+use App\Models\User;
+use App\Models\Message;
 
 Route::get('/', function () {
     if (auth()->check()) {
@@ -17,7 +19,20 @@ Route::get('/', function () {
 })->name('home');
 
 Route::get('dashboard', function () {
-    return Inertia::render('Dashboard');
+    abort_unless(auth()->check() && auth()->user()->hasAnyRole(['super_admin', 'admin', 'moderator']), 403);
+
+    // Fetch statistics
+    $userCount = User::count();
+    $messageCount = Message::count();
+    $activeSessions = rand(5, 50); // Mock active sessions for now
+
+    return Inertia::render('Dashboard', [
+        'statistics' => [
+            'userCount' => $userCount,
+            'messageCount' => $messageCount,
+            'activeSessions' => $activeSessions,
+        ],
+    ]);
 })->middleware(['auth', 'verified'])->name('dashboard');
 
 // Chat routes (MVP)

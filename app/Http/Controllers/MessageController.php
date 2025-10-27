@@ -15,7 +15,7 @@ class MessageController extends Controller
 {
     public function index(Request $request): JsonResource
     {
-        $messages = Message::with('user:id,name')
+        $messages = Message::with('user:id,name,chat_color')
             ->orderBy('created_at') // oldest first (newest last)
             ->paginate(perPage: (int) $request->integer('per_page', 20));
 
@@ -35,7 +35,7 @@ class MessageController extends Controller
             'body' => $sanitized,
         ]);
 
-        $message->load('user:id,name');
+        $message->load('user:id,name,chat_color');
 
         return new JsonResource($message);
     }

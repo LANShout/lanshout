@@ -31,10 +31,11 @@ import {
 import UserMenuContent from '@/components/UserMenuContent.vue';
 import { getInitials } from '@/composables/useInitials';
 import { urlIsActive } from '@/lib/utils';
+import admin from '@/routes/admin';
 import { dashboard } from '@/routes';
 import type { BreadcrumbItem, NavItem } from '@/types';
 import { Link, usePage } from '@inertiajs/vue3';
-import { Github, LayoutGrid, Menu, Search, Twitter } from 'lucide-vue-next';
+import { Github, LayoutGrid, Menu, Search, Twitter, Shield } from 'lucide-vue-next';
 import { computed } from 'vue';
 
 interface Props {
@@ -78,6 +79,15 @@ const mainNavItems = computed<NavItem[]>(() => {
             title: 'Dashboard',
             href: dashboard(),
             icon: LayoutGrid,
+        });
+    }
+
+    // Only show Admin to Moderator, Admin, or Super Admin
+    if (hasAnyRole(['moderator', 'admin', 'super_admin'])) {
+        items.push({
+            title: 'Admin',
+            href: admin.index().url,
+            icon: Shield,
         });
     }
 
