@@ -1,38 +1,82 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { toTypedSchema } from "@vee-validate/zod"
+import { useForm } from "vee-validate"
+import { ref } from "vue"
+import * as z from "zod"
+
+import { Button } from "@/components/ui/button"
+import {
+  FormControl,
+  FormField,
+  FormItem,
+  FormMessage,
+} from "@/components/ui/form"
+import { Textarea } from "@/components/ui/textarea"
 
 const emit = defineEmits<{
   (e: 'submit', body: string): void
 }>()
 
-const body = ref('')
 const posting = ref(false)
 const error = ref<string | null>(null)
 
-async function onSubmit() {
-  if (!body.value.trim()) return
+const formSchema = toTypedSchema(z.object({
+  message: z.string().min(1, {
+    message: "Message cannot be empty.",
+  }),
+}))
+
+const { handleSubmit, resetForm } = useForm({
+  validationSchema: formSchema,
+})
+
+const onSubmit = handleSubmit(async (values) => {
+  if (!values.message.trim()) return
   posting.value = true
   error.value = null
   try {
-    await emit('submit', body.value)
-    body.value = ''
+    await emit('submit', values.message)
+    resetForm()
   } catch (e: any) {
     error.value = e?.message ?? 'Failed to post'
   } finally {
     posting.value = false
   }
+})
+
+const handleKeydown = (event: KeyboardEvent) => {
+  if (event.key === 'Enter' && !event.shiftKey) {
+    event.preventDefault()
+    onSubmit()
+  }
 }
 </script>
 
 <template>
-  <form @submit.prevent="onSubmit" class="flex items-start gap-2">
-    <textarea v-model="body" rows="2" placeholder="Type a message…"
-      class="min-h-[44px] flex-1 rounded-md border border-sidebar-border/70 p-2 text-sm outline-none focus:ring-2 focus:ring-ring dark:border-sidebar-border"
-    />
-    <button type="submit" :disabled="posting || !body.trim()"
-      class="rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground disabled:opacity-50">
-      {{ posting ? 'Sending…' : 'Send' }}
-    </button>
+  <form class="w-full space-y-2" @submit="onSubmit">
+    <div class="flex items-start gap-2">
+      <FormField v-slot="{ componentField }" name="message">
+        <FormItem class="flex-1">
+          <FormControl>
+            <Textarea
+              placeholder="Type a message…"
+              rows="2"
+              class="resize-none"
+              v-bind="componentField"
+              @keydown="handleKeydown"
+            />
+          </FormControl>
+          <FormMessage />
+        </FormItem>
+      </FormField>
+      <Button
+        type="submit"
+        :disabled="posting"
+        class="rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground disabled:opacity-50"
+      >
+        {{ posting ? 'Sending…' : 'Send' }}
+      </Button>
+    </div>
+    <p v-if="error" class="text-sm text-red-600 dark:text-red-400">{{ error }}</p>
   </form>
-  <p v-if="error" class="mt-1 text-sm text-red-600 dark:text-red-400">{{ error }}</p>
 </template>

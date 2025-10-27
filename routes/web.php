@@ -22,7 +22,7 @@ Route::get('dashboard', function () {
 
 // Chat routes (MVP)
 Route::get('/chat', [MessageController::class, 'page'])
-    ->middleware(['auth'])
+    ->middleware(['auth','verified'])
     ->name('chat');
 
 Route::get('/messages', [MessageController::class, 'index'])
