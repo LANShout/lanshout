@@ -1,0 +1,199 @@
+{
+  "common": {
+    "appName": "LanShout",
+    "loading": "Lädt...",
+    "error": "Fehler",
+    "success": "Erfolg",
+    "save": "Speichern",
+    "cancel": "Abbrechen",
+    "delete": "Löschen",
+    "edit": "Bearbeiten",
+    "close": "Schließen",
+    "submit": "Absenden",
+    "search": "Suchen",
+    "settings": "Einstellungen",
+    "logout": "Abmelden",
+    "profile": "Profil",
+    "dashboard": "Dashboard",
+    "admin": "Admin",
+    "users": "Benutzer",
+    "back": "Zurück"
+  },
+  "landing": {
+    "title": "Willkommen bei LanShout",
+    "subtitle": "Eine einfache Echtzeit-Shoutbox für LAN-Partys und Events. Teile Nachrichten, koordiniere Spiele und bleibe während deines Events in Verbindung.",
+    "getStarted": "Jetzt starten",
+    "createAccount": "Konto erstellen",
+    "logIn": "Anmelden",
+    "register": "Registrieren",
+    "features": {
+      "title": "Funktionen",
+      "simpleMessaging": {
+        "title": "Einfache Nachrichten",
+        "description": "Versende schnelle Nachrichten und Updates, die alle auf deiner LAN sofort sehen können."
+      },
+      "realTimeUpdates": {
+        "title": "Echtzeit-Updates",
+        "description": "Nachrichten erscheinen sofort für alle Benutzer mit Echtzeit-Synchronisierung."
+      },
+      "builtForEvents": {
+        "title": "Für Events entwickelt",
+        "description": "Perfekt für LAN-Partys, Gaming-Events und Community-Treffen."
+      }
+    },
+    "cta": {
+      "title": "Bereit, dich mit deiner Community zu verbinden?",
+      "description": "Melde dich an, um zu chatten, oder erstelle ein Konto, um der Unterhaltung beizutreten.",
+      "button": "Zum Chat anmelden"
+    },
+    "footer": "LanShout - Einfache Echtzeit-Nachrichten für deine Events"
+  },
+  "auth": {
+    "login": {
+      "title": "Bei deinem Konto anmelden",
+      "description": "Gib unten deine E-Mail-Adresse und dein Passwort ein, um dich anzumelden",
+      "email": "E-Mail-Adresse",
+      "password": "Passwort",
+      "rememberMe": "Angemeldet bleiben",
+      "forgotPassword": "Passwort vergessen?",
+      "button": "Anmelden",
+      "noAccount": "Noch kein Konto?",
+      "signUp": "Registrieren",
+      "emailPlaceholder": "email@beispiel.de",
+      "passwordPlaceholder": "Passwort"
+    },
+    "register": {
+      "title": "Konto erstellen",
+      "description": "Gib deine Informationen ein, um ein Konto zu erstellen",
+      "name": "Name",
+      "email": "E-Mail-Adresse",
+      "password": "Passwort",
+      "confirmPassword": "Passwort bestätigen",
+      "button": "Registrieren",
+      "hasAccount": "Bereits ein Konto?",
+      "logIn": "Anmelden",
+      "namePlaceholder": "Max Mustermann",
+      "emailPlaceholder": "email@beispiel.de",
+      "passwordPlaceholder": "Passwort"
+    },
+    "forgotPassword": {
+      "title": "Passwort vergessen?",
+      "description": "Gib deine E-Mail-Adresse ein und wir senden dir einen Link zum Zurücksetzen des Passworts.",
+      "email": "E-Mail-Adresse",
+      "button": "Link senden",
+      "backToLogin": "Zurück zur Anmeldung",
+      "emailPlaceholder": "email@beispiel.de"
+    },
+    "resetPassword": {
+      "title": "Passwort zurücksetzen",
+      "description": "Gib unten dein neues Passwort ein",
+      "email": "E-Mail-Adresse",
+      "password": "Passwort",
+      "confirmPassword": "Passwort bestätigen",
+      "button": "Passwort zurücksetzen",
+      "emailPlaceholder": "email@beispiel.de",
+      "passwordPlaceholder": "Passwort"
+    },
+    "verifyEmail": {
+      "title": "E-Mail-Adresse verifizieren",
+      "description": "Danke für deine Registrierung! Bevor du beginnst, kannst du bitte deine E-Mail-Adresse verifizieren, indem du auf den Link klickst, den wir dir gerade geschickt haben? Falls du die E-Mail nicht erhalten hast, senden wir dir gerne eine neue.",
+      "resendButton": "Bestätigungs-E-Mail erneut senden",
+      "linkSent": "Ein neuer Bestätigungslink wurde an deine E-Mail-Adresse gesendet.",
+      "logout": "Abmelden"
+    },
+    "confirmPassword": {
+      "title": "Passwort bestätigen",
+      "description": "Dies ist ein geschützter Bereich der Anwendung. Bitte bestätige dein Passwort, bevor du fortfährst.",
+      "password": "Passwort",
+      "button": "Bestätigen",
+      "passwordPlaceholder": "Passwort"
+    }
+  },
+  "chat": {
+    "title": "Chat",
+    "inputPlaceholder": "Schreibe eine Nachricht...",
+    "send": "Senden",
+    "noMessages": "Noch keine Nachrichten. Sei der Erste, der etwas sagt!",
+    "loadMore": "Weitere Nachrichten laden",
+    "loadingMessages": "Nachrichten werden geladen...",
+    "errorLoading": "Fehler beim Laden der Nachrichten",
+    "errorSending": "Fehler beim Senden der Nachricht",
+    "retry": "Wiederholen"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "welcome": "Willkommen zurück!",
+    "stats": {
+      "totalUsers": "Benutzer gesamt",
+      "totalMessages": "Nachrichten gesamt",
+      "activeNow": "Aktuell aktiv"
+    }
+  },
+  "settings": {
+    "title": "Einstellungen",
+    "profile": {
+      "title": "Profil",
+      "description": "Aktualisiere deine Profilinformationen",
+      "name": "Name",
+      "email": "E-Mail-Adresse",
+      "chatColor": "Chat-Farbe",
+      "updateButton": "Profil aktualisieren",
+      "updated": "Profil erfolgreich aktualisiert"
+    },
+    "password": {
+      "title": "Passwort ändern",
+      "description": "Stelle sicher, dass dein Konto ein langes, zufälliges Passwort verwendet, um sicher zu bleiben.",
+      "currentPassword": "Aktuelles Passwort",
+      "newPassword": "Neues Passwort",
+      "confirmPassword": "Passwort bestätigen",
+      "updateButton": "Passwort aktualisieren",
+      "updated": "Passwort erfolgreich aktualisiert"
+    },
+    "appearance": {
+      "title": "Erscheinungsbild",
+      "description": "Passe das Erscheinungsbild der Anwendung an",
+      "theme": "Thema",
+      "light": "Hell",
+      "dark": "Dunkel",
+      "system": "System",
+      "updated": "Erscheinungsbild erfolgreich aktualisiert"
+    }
+  },
+  "admin": {
+    "title": "Admin-Panel",
+    "users": {
+      "title": "Benutzer",
+      "list": "Benutzerliste",
+      "name": "Name",
+      "email": "E-Mail",
+      "role": "Rolle",
+      "createdAt": "Erstellt am",
+      "actions": "Aktionen",
+      "view": "Ansehen",
+      "edit": "Bearbeiten",
+      "delete": "Löschen",
+      "confirmDelete": "Bist du sicher, dass du diesen Benutzer löschen möchtest?",
+      "deleteSuccess": "Benutzer erfolgreich gelöscht",
+      "deleteError": "Fehler beim Löschen des Benutzers",
+      "noUsers": "Keine Benutzer gefunden"
+    }
+  },
+  "navigation": {
+    "home": "Startseite",
+    "chat": "Chat",
+    "dashboard": "Dashboard",
+    "settings": "Einstellungen",
+    "admin": "Admin",
+    "users": "Benutzer",
+    "profile": "Profil",
+    "appearance": "Erscheinungsbild",
+    "password": "Passwort"
+  },
+  "validation": {
+    "required": "Dieses Feld ist erforderlich",
+    "email": "Bitte gib eine gültige E-Mail-Adresse ein",
+    "minLength": "Muss mindestens {min} Zeichen lang sein",
+    "maxLength": "Darf höchstens {max} Zeichen lang sein",
+    "passwordMatch": "Passwörter müssen übereinstimmen"
+  }
+}

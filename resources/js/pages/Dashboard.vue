@@ -25,12 +25,16 @@ interface ChartDataPoint {
 
 const props = defineProps<Props>();
 
-const breadcrumbs: BreadcrumbItem[] = [
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
+
+const breadcrumbs = computed<BreadcrumbItem[]>(() => [
     {
-        title: 'Dashboard',
+        title: t('dashboard.title'),
         href: dashboard().url,
     },
-];
+]);
 
 // Chart controls
 const selectedResolution = ref<'hour' | 'day' | 'week'>('day');
@@ -77,11 +81,11 @@ onMounted(() => {
 });
 
 // Metric labels
-const metricLabels = {
-    messages: 'Messages',
-    users: 'User Registrations',
-    sessions: 'Active Users',
-};
+const metricLabels = computed(() => ({
+    messages: t('dashboard.stats.totalMessages'),
+    users: t('dashboard.stats.totalUsers'),
+    sessions: t('dashboard.stats.activeNow'),
+}));
 
 const chartTitle = computed(() => {
     const resolutionText = selectedResolution.value === 'hour' ? 'Hourly' :
@@ -91,13 +95,13 @@ const chartTitle = computed(() => {
 </script>
 
 <template>
-    <Head title="Dashboard" />
+    <Head :title="$t('dashboard.title')" />
 
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="flex h-full flex-1 flex-col gap-4 p-4">
             <div>
-                <h1 class="text-2xl font-bold">Dashboard</h1>
-                <p class="text-muted-foreground mt-2">Overview of your LanShout instance</p>
+                <h1 class="text-2xl font-bold">{{ $t('dashboard.title') }}</h1>
+                <p class="text-muted-foreground mt-2">{{ $t('dashboard.welcome') }}</p>
             </div>
 
             <!-- Statistics Cards -->
@@ -106,7 +110,7 @@ const chartTitle = computed(() => {
                 <div class="rounded-lg border border-sidebar-border/70 bg-card p-6 dark:border-sidebar-border">
                     <div class="flex items-center justify-between">
                         <div>
-                            <p class="text-sm font-medium text-muted-foreground">Total Users</p>
+                            <p class="text-sm font-medium text-muted-foreground">{{ $t('dashboard.stats.totalUsers') }}</p>
                             <h3 class="mt-2 text-3xl font-bold">{{ props.statistics.userCount }}</h3>
                         </div>
                         <div class="flex h-12 w-12 items-center justify-center rounded-lg bg-blue-500/10 text-blue-500">
@@ -119,7 +123,7 @@ const chartTitle = computed(() => {
                 <div class="rounded-lg border border-sidebar-border/70 bg-card p-6 dark:border-sidebar-border">
                     <div class="flex items-center justify-between">
                         <div>
-                            <p class="text-sm font-medium text-muted-foreground">Total Messages</p>
+                            <p class="text-sm font-medium text-muted-foreground">{{ $t('dashboard.stats.totalMessages') }}</p>
                             <h3 class="mt-2 text-3xl font-bold">{{ props.statistics.messageCount }}</h3>
                         </div>
                         <div class="flex h-12 w-12 items-center justify-center rounded-lg bg-green-500/10 text-green-500">
@@ -132,7 +136,7 @@ const chartTitle = computed(() => {
                 <div class="rounded-lg border border-sidebar-border/70 bg-card p-6 dark:border-sidebar-border">
                     <div class="flex items-center justify-between">
                         <div>
-                            <p class="text-sm font-medium text-muted-foreground">Active Sessions</p>
+                            <p class="text-sm font-medium text-muted-foreground">{{ $t('dashboard.stats.activeNow') }}</p>
                             <h3 class="mt-2 text-3xl font-bold">{{ props.statistics.activeSessions }}</h3>
                         </div>
                         <div class="flex h-12 w-12 items-center justify-center rounded-lg bg-amber-500/10 text-amber-500">

@@ -105,23 +105,23 @@ onMounted(() => {
           :disabled="loading"
           @click="emit('loadMore')"
         >
-          {{ loading ? 'Loading...' : 'Show More' }}
+          {{ loading ? $t('chat.loadingMessages') : $t('chat.loadMore') }}
         </Button>
       </div>
 
       <!-- Loading indicator at top when loading history -->
       <div v-if="loading && messages.length > 0" class="flex justify-center py-2">
-        <span class="text-sm text-muted-foreground">Loading messages...</span>
+        <span class="text-sm text-muted-foreground">{{ $t('chat.loadingMessages') }}</span>
       </div>
 
       <!-- Empty state -->
       <div v-if="!messages.length && !loading" class="flex flex-1 items-center justify-center text-sm text-muted-foreground">
-        No messages yet. Be the first to say hi!
+        {{ $t('chat.noMessages') }}
       </div>
 
       <!-- Initial loading state -->
       <div v-if="!messages.length && loading" class="flex flex-1 items-center justify-center text-sm text-muted-foreground">
-        Loading messages...
+        {{ $t('chat.loadingMessages') }}
       </div>
 
       <!-- Messages -->

@@ -3,6 +3,7 @@ import { toTypedSchema } from "@vee-validate/zod"
 import { useForm } from "vee-validate"
 import { ref } from "vue"
 import * as z from "zod"
+import { useI18n } from 'vue-i18n'
 
 import { Button } from "@/components/ui/button"
 import {
@@ -13,6 +14,8 @@ import {
 } from "@/components/ui/form"
 import { Textarea } from "@/components/ui/textarea"
 
+const { t } = useI18n()
+
 const emit = defineEmits<{
   (e: 'submit', body: string): void
 }>()
@@ -22,7 +25,7 @@ const error = ref<string | null>(null)
 
 const formSchema = toTypedSchema(z.object({
   message: z.string().min(1, {
-    message: "Message cannot be empty.",
+    message: t('validation.required'),
   }),
 }))
 
@@ -38,7 +41,7 @@ const onSubmit = handleSubmit(async (values) => {
     await emit('submit', values.message)
     resetForm()
   } catch (e: any) {
-    error.value = e?.message ?? 'Failed to post'
+    error.value = e?.message ?? t('chat.errorSending')
   } finally {
     posting.value = false
   }
@@ -59,7 +62,7 @@ const handleKeydown = (event: KeyboardEvent) => {
         <FormItem class="flex-1">
           <FormControl>
             <Textarea
-              placeholder="Type a message…"
+              :placeholder="$t('chat.inputPlaceholder')"
               rows="2"
               class="resize-none"
               v-bind="componentField"
@@ -74,7 +77,7 @@ const handleKeydown = (event: KeyboardEvent) => {
         :disabled="posting"
         class="rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground disabled:opacity-50"
       >
-        {{ posting ? 'Sending…' : 'Send' }}
+        {{ posting ? $t('common.loading') : $t('chat.send') }}
       </Button>
     </div>
     <p v-if="error" class="text-sm text-red-600 dark:text-red-400">{{ error }}</p>

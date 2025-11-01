@@ -2,8 +2,11 @@
 import AppLayout from '@/layouts/AppLayout.vue';
 import { Head } from '@inertiajs/vue3';
 import { ref, onMounted } from 'vue';
+import { useI18n } from 'vue-i18n';
 import ChatWall from '../components/chat/ChatWall.vue';
 import ChatInput from '../components/chat/ChatInput.vue';
+
+const { t } = useI18n();
 
 interface User { id: number; name: string; chat_color?: string | null }
 interface Message { id: number; body: string; created_at: string; user: User }
@@ -53,7 +56,7 @@ async function loadMoreMessages() {
       hasMore.value = false;
     }
   } catch (e: any) {
-    error.value = e?.message ?? 'Failed to load messages';
+    error.value = e?.message ?? t('chat.errorLoading');
   } finally {
     loading.value = false;
   }
@@ -72,7 +75,7 @@ async function submitMessage(body: string) {
   });
   if (!res.ok) {
     const data = await res.json().catch(() => ({}));
-    throw new Error(data?.message || 'Failed to post message');
+    throw new Error(data?.message || t('chat.errorSending'));
   }
   const data = await res.json();
   const msg: Message = data?.data ?? data;
@@ -87,10 +90,10 @@ onMounted(() => {
 </script>
 
 <template>
-  <Head title="Chat" />
+  <Head :title="$t('chat.title')" />
   <AppLayout>
     <div class="mx-auto flex w-full max-w-3xl flex-col gap-3 p-4">
-      <h1 class="text-xl font-semibold">Chat</h1>
+      <h1 class="text-xl font-semibold">{{ $t('chat.title') }}</h1>
       <ChatWall
         :messages="messages"
         :loading="loading"
