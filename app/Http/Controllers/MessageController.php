@@ -16,7 +16,7 @@ class MessageController extends Controller
     public function index(Request $request): JsonResource
     {
         $messages = Message::with('user:id,name,chat_color')
-            ->orderBy('created_at') // oldest first (newest last)
+            ->orderBy('created_at', 'desc') // newest first for pagination
             ->paginate(perPage: (int) $request->integer('per_page', 20));
 
         return JsonResource::collection($messages);
