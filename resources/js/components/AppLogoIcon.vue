@@ -7,12 +7,12 @@ defineOptions({
 });
 
 interface Props {
-    className?: HTMLAttributes['class'];
+    class?: HTMLAttributes['class'];
 }
 
 defineProps<Props>();
 </script>
 
 <template>
-    <MessageSquare class="h-6 w-6" />
+    <MessageSquare :class="$props.class" />
 </template>

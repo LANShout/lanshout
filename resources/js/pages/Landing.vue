@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { Head, Link } from '@inertiajs/vue3'
 import { login, register } from '@/routes'
-import { MessageSquare, Users, Zap } from 'lucide-vue-next'
+import AppLogoIcon from '@/components/AppLogoIcon.vue'
+import { Users, Zap } from 'lucide-vue-next'
 
 withDefaults(defineProps<{ canRegister?: boolean }>(), { canRegister: true })
 </script>
@@ -13,7 +14,7 @@ withDefaults(defineProps<{ canRegister?: boolean }>(), { canRegister: true })
     <header class="border-b border-border/40">
       <div class="mx-auto flex h-16 max-w-7xl items-center justify-between px-4">
         <div class="flex items-center gap-2">
-          <MessageSquare class="h-6 w-6 text-primary" />
+          <AppLogoIcon class="h-6 w-6 text-primary" />
           <span class="text-xl font-bold">LanShout</span>
         </div>
         <div class="flex gap-3">
@@ -60,7 +61,7 @@ withDefaults(defineProps<{ canRegister?: boolean }>(), { canRegister: true })
       <div class="mt-24 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
         <div class="flex flex-col items-center text-center p-6 rounded-lg border border-border/40 bg-card">
           <div class="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
-            <MessageSquare class="h-6 w-6 text-primary" />
+            <AppLogoIcon class="h-6 w-6 text-primary" />
           </div>
           <h3 class="mt-4 text-lg font-semibold">Simple Messaging</h3>
           <p class="mt-2 text-sm text-muted-foreground">
