@@ -35,7 +35,7 @@ import admin from '@/routes/admin';
 import { dashboard } from '@/routes';
 import type { BreadcrumbItem, NavItem } from '@/types';
 import { Link, usePage } from '@inertiajs/vue3';
-import { Github, LayoutGrid, Menu, Search, Twitter, Shield } from 'lucide-vue-next';
+import { Github, LayoutGrid, Menu, Shield } from 'lucide-vue-next';
 import { computed } from 'vue';
 
 interface Props {
@@ -97,14 +97,9 @@ const mainNavItems = computed<NavItem[]>(() => {
 const rightNavItems: NavItem[] = [
     {
         title: 'GitHub',
-        href: 'https://github.com',
+        href: 'https://github.com/LANShout/lanshout',
         icon: Github,
-    },
-    {
-        title: 'Twitter',
-        href: 'https://twitter.com',
-        icon: Twitter,
-    },
+    }
 ];
 
 const toUrl = (href: string) => href;
@@ -223,9 +218,6 @@ const toUrl = (href: string) => href;
                             size="icon"
                             class="group h-9 w-9 cursor-pointer"
                         >
-                            <Search
-                                class="size-5 opacity-80 group-hover:opacity-100"
-                            />
                         </Button>
 
                         <div class="hidden space-x-1 lg:flex">

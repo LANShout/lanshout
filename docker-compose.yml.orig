@@ -1,0 +1,109 @@
+version: '3.9'
+name: lanshout
+services:
+    postgres:
+        image: 'postgres:16-alpine'
+        container_name: lanshout_postgres
+        restart: unless-stopped
+        environment:
+            POSTGRES_DB: lanshout
+            POSTGRES_USER: lanshout
+            POSTGRES_PASSWORD: lanshout
+        ports:
+            - '5432:5432'
+        volumes:
+            - 'pgdata:/var/lib/postgresql/data'
+        healthcheck:
+            test:
+                - CMD-SHELL
+                - 'pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB'
+            interval: 10s
+            timeout: 5s
+            retries: 5
+        networks:
+            - appnet
+    redis:
+        image: 'redis:7-alpine'
+        container_name: lanshout_redis
+        restart: unless-stopped
+        command:
+            - redis-server
+            - '--appendonly'
+            - 'yes'
+        ports:
+            - '6379:6379'
+        volumes:
+            - 'redisdata:/data'
+        networks:
+            - appnet
+    mailhog:
+        image: 'mailhog/mailhog:v1.0.1'
+        container_name: lanshout_mailhog
+        restart: unless-stopped
+        ports:
+            - '1025:1025'
+            - '8025:8025'
+        networks:
+            - appnet
+    mysql:
+        image: 'mysql/mysql-server:8.0'
+        ports:
+            - '${FORWARD_DB_PORT:-3306}:3306'
+        environment:
+            MYSQL_ROOT_PASSWORD: '${DB_PASSWORD}'
+            MYSQL_ROOT_HOST: '%'
+            MYSQL_DATABASE: '${DB_DATABASE}'
+            MYSQL_USER: '${DB_USERNAME}'
+            MYSQL_PASSWORD: '${DB_PASSWORD}'
+            MYSQL_ALLOW_EMPTY_PASSWORD: 1
+            MYSQL_EXTRA_OPTIONS: '${MYSQL_EXTRA_OPTIONS}'
+        volumes:
+            - 'sail-mysql:/var/lib/mysql'
+            - './vendor/laravel/sail/database/mysql/create-testing-database.sh:/docker-entrypoint-initdb.d/10-create-testing-database.sh'
+        networks:
+            - sail
+        healthcheck:
+            test:
+                - CMD
+                - mysqladmin
+                - ping
+                - '-p${DB_PASSWORD}'
+            retries: 3
+            timeout: 5s
+    pgsql:
+        image: 'postgres:18-alpine'
+        ports:
+            - '${FORWARD_DB_PORT:-5432}:5432'
+        environment:
+            PGPASSWORD: '${DB_PASSWORD:-secret}'
+            POSTGRES_DB: '${DB_DATABASE}'
+            POSTGRES_USER: '${DB_USERNAME}'
+            POSTGRES_PASSWORD: '${DB_PASSWORD:-secret}'
+        volumes:
+            - 'sail-pgsql:/var/lib/postgresql/data'
+            - './vendor/laravel/sail/database/pgsql/create-testing-database.sql:/docker-entrypoint-initdb.d/10-create-testing-database.sql'
+        networks:
+            - sail
+        healthcheck:
+            test:
+                - CMD
+                - pg_isready
+                - '-q'
+                - '-d'
+                - '${DB_DATABASE}'
+                - '-U'
+                - '${DB_USERNAME}'
+            retries: 3
+            timeout: 5s
+volumes:
+    pgdata: null
+    redisdata: null
+    sail-mysql:
+        driver: local
+    sail-pgsql:
+        driver: local
+    sail-redis:
+        driver: local
+networks:
+    appnet:
+        driver: bridge

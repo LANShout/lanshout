@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { computed } from 'vue';
 import ProfileController from '@/actions/App/Http/Controllers/Settings/ProfileController';
 import { edit } from '@/routes/profile';
 import { send } from '@/routes/verification';
@@ -30,6 +31,68 @@ const breadcrumbItems: BreadcrumbItem[] = [
 
 const page = usePage();
 const user = page.props.auth.user;
+
+// Hash function to generate a color from a username (same as ChatMessage.vue)
+function hashStringToColor(str: string): string {
+  let hash = 0
+  for (let i = 0; i < str.length; i++) {
+    hash = str.charCodeAt(i) + ((hash << 5) - hash)
+  }
+
+  // Convert hash to HSL color (varied hue, consistent saturation and lightness)
+  const hue = Math.abs(hash % 360)
+  const saturation = 65 + (Math.abs(hash) % 20) // 65-85%
+  const lightness = 45 + (Math.abs(hash >> 8) % 15) // 45-60%
+
+  return `hsl(${hue}, ${saturation}%, ${lightness}%)`
+}
+
+// Convert HSL to hex format for color input
+function hslToHex(hsl: string): string {
+  // Parse HSL string like "hsl(120, 65%, 50%)"
+  const match = hsl.match(/hsl\((\d+),\s*(\d+)%,\s*(\d+)%\)/)
+  if (!match) return '#3b82f6' // fallback
+
+  const h = parseInt(match[1])
+  const s = parseInt(match[2]) / 100
+  const l = parseInt(match[3]) / 100
+
+  const c = (1 - Math.abs(2 * l - 1)) * s
+  const x = c * (1 - Math.abs((h / 60) % 2 - 1))
+  const m = l - c / 2
+
+  let r = 0, g = 0, b = 0
+
+  if (h < 60) {
+    r = c; g = x; b = 0
+  } else if (h < 120) {
+    r = x; g = c; b = 0
+  } else if (h < 180) {
+    r = 0; g = c; b = x
+  } else if (h < 240) {
+    r = 0; g = x; b = c
+  } else if (h < 300) {
+    r = x; g = 0; b = c
+  } else {
+    r = c; g = 0; b = x
+  }
+
+  const toHex = (n: number) => {
+    const hex = Math.round((n + m) * 255).toString(16)
+    return hex.length === 1 ? '0' + hex : hex
+  }
+
+  return `#${toHex(r)}${toHex(g)}${toHex(b)}`
+}
+
+// Compute the default color: use custom color if set, otherwise hash the username
+const defaultChatColor = computed(() => {
+  if (user.chat_color && user.chat_color.trim()) {
+    return user.chat_color
+  }
+  const hslColor = hashStringToColor(user.name || 'User')
+  return hslToHex(hslColor)
+})
 </script>
 
 <template>
@@ -80,12 +143,12 @@ const user = page.props.auth.user;
                     <div class="grid gap-2">
                         <Label for="chat_color">Chat Username Color</Label>
                         <div class="flex items-center gap-3">
-                            <Input
+                            <input
                                 id="chat_color"
                                 type="color"
-                                class="mt-1 h-10 w-20 cursor-pointer"
+                                class="mt-1 h-10 w-20 cursor-pointer rounded border border-input"
                                 name="chat_color"
-                                :default-value="user.chat_color || '#3b82f6'"
+                                value="#fafafafa"
                             />
                             <span class="text-sm text-muted-foreground">
                                 Choose a color for your username in chat messages
