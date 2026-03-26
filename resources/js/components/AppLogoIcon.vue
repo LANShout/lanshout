@@ -1,18 +1,22 @@
 <script setup lang="ts">
 import type { HTMLAttributes } from 'vue';
-import { MessageSquare } from 'lucide-vue-next'
+import logoIcon from '../../images/logo-icon.png';
 
 defineOptions({
     inheritAttrs: false,
 });
 
-interface Props {
-    class?: HTMLAttributes['class'];
-}
+type Props = {
+    className?: HTMLAttributes['class'];
+};
 
 defineProps<Props>();
 </script>
 
 <template>
-    <MessageSquare :class="$props.class" />
+    <img
+        :class="className"
+        :src="logoIcon"
+        alt="App Logo Icon"
+    />
 </template>

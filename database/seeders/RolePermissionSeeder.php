@@ -22,6 +22,7 @@ class RolePermissionSeeder extends Seeder
             ['name' => 'delete_user', 'display_name' => 'Delete User', 'description' => 'Can delete users'],
             ['name' => 'edit_chat_configuration', 'display_name' => 'Edit Chat Configuration', 'description' => 'Can edit chat configuration'],
             ['name' => 'edit_system_configuration', 'display_name' => 'Edit System Configuration', 'description' => 'Can edit system configuration'],
+            ['name' => 'moderate_chat', 'display_name' => 'Moderate Chat', 'description' => 'Can timeout, block users and manage chat filters'],
         ];
 
         foreach ($permissions as $permission) {
@@ -59,19 +60,20 @@ class RolePermissionSeeder extends Seeder
         $adminPermissions = Permission::whereNotIn('name', ['edit_system_configuration'])->get();
         $admin->permissions()->sync($adminPermissions);
 
-        // Moderator can view, send, and delete chat messages, and edit users
+        // Moderator can view, send, and delete chat messages, edit users, and moderate chat
         $moderatorPermissions = Permission::whereIn('name', [
             'view_chat',
             'send_chat_message',
             'delete_chat_message',
-            'edit_user'
+            'edit_user',
+            'moderate_chat',
         ])->get();
         $moderator->permissions()->sync($moderatorPermissions);
 
         // User can only view and send chat messages
         $userPermissions = Permission::whereIn('name', [
             'view_chat',
-            'send_chat_message'
+            'send_chat_message',
         ])->get();
         $user->permissions()->sync($userPermissions);
     }

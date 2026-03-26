@@ -2,6 +2,8 @@
 
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Auth\LanCoreAuthController;
+use App\Http\Controllers\Chat\ChatSettingsController;
+use App\Http\Controllers\Chat\ModerationController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\MessageController;
 use App\Models\User;
@@ -40,8 +42,28 @@ Route::get('/messages', [MessageController::class, 'index'])
     ->name('messages.index');
 
 Route::post('/messages', [MessageController::class, 'store'])
-    ->middleware(['auth'])
+    ->middleware(['auth', 'can.chat'])
     ->name('messages.store');
+
+// Chat moderation & settings routes (moderator/admin only)
+Route::middleware(['auth', 'moderator'])->prefix('chat')->name('chat.')->group(function () {
+    Route::get('/settings', [ChatSettingsController::class, 'index'])->name('settings');
+
+    // Filter chain management
+    Route::post('/filters', [ChatSettingsController::class, 'storeFilter'])->name('filters.store');
+    Route::put('/filters/{filterChain}', [ChatSettingsController::class, 'updateFilter'])->name('filters.update');
+    Route::delete('/filters/{filterChain}', [ChatSettingsController::class, 'destroyFilter'])->name('filters.destroy');
+
+    // Slow mode
+    Route::put('/slow-mode', [ChatSettingsController::class, 'updateSlowMode'])->name('slow-mode.update');
+
+    // User moderation
+    Route::get('/moderation/users', [ModerationController::class, 'users'])->name('moderation.users');
+    Route::post('/moderation/users/{user}/timeout', [ModerationController::class, 'timeout'])->name('moderation.timeout');
+    Route::delete('/moderation/users/{user}/timeout', [ModerationController::class, 'relieveTimeout'])->name('moderation.relieve-timeout');
+    Route::post('/moderation/users/{user}/block', [ModerationController::class, 'block'])->name('moderation.block');
+    Route::delete('/moderation/users/{user}/block', [ModerationController::class, 'unblock'])->name('moderation.unblock');
+});
 
 // LanCore SSO routes
 Route::prefix('auth/lancore')->name('lancore.')->group(function () {

@@ -1,6 +1,6 @@
-import Echo from '@laravel/echo-vue';
+import { configureEcho } from '@laravel/echo-vue';
 
-const echo = new Echo({
+configureEcho({
     broadcaster: 'reverb',
     key: import.meta.env.VITE_REVERB_APP_KEY,
     wsHost: import.meta.env.VITE_REVERB_HOST,
@@ -9,5 +9,3 @@ const echo = new Echo({
     forceTLS: (import.meta.env.VITE_REVERB_SCHEME ?? 'https') === 'https',
     enabledTransports: ['ws', 'wss'],
 });
-
-export default echo;

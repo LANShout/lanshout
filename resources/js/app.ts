@@ -1,12 +1,11 @@
 import '../css/app.css';
 
 import { createInertiaApp } from '@inertiajs/vue3';
-import { EchoPlugin } from '@laravel/echo-vue';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import type { DefineComponent } from 'vue';
 import { createApp, h } from 'vue';
 import { initializeTheme } from './composables/useAppearance';
-import echo from './echo';
+import './echo';
 import i18n from './i18n';
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
@@ -28,7 +27,7 @@ createInertiaApp({
         createApp({ render: () => h(App, props) })
             .use(plugin)
             .use(i18n)
-            .use(EchoPlugin, { echo })
+
             .mount(el);
     },
     progress: {

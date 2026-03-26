@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\ChatSetting;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
@@ -50,6 +51,9 @@ class HandleInertiaRequests extends Middleware
                     'name' => $user->name,
                     'email' => $user->email,
                     'roles' => $user->roles->pluck('name')->toArray(),
+                    'is_blocked' => $user->isBlocked(),
+                    'is_timed_out' => $user->isTimedOut(),
+                    'timed_out_until' => $user->timed_out_until?->toISOString(),
                 ] : null,
             ],
             'isAdmin' => optional($user)->id === 1,            'lancore' => [
@@ -58,6 +62,12 @@ class HandleInertiaRequests extends Middleware
                     ? route('lancore.redirect')
                     : null,
             ],            'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
+            'chatSettings' => [
+                'slowMode' => [
+                    'enabled' => ChatSetting::isSlowModeEnabled(),
+                    'seconds' => ChatSetting::slowModeSeconds(),
+                ],
+            ],
         ];
     }
 }

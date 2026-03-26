@@ -3,8 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Events\MessageSent;
+use App\Models\ChatSetting;
 use App\Models\Message;
 use App\Services\ContentModeration;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -23,17 +25,40 @@ class MessageController extends Controller
         return JsonResource::collection($messages);
     }
 
-    public function store(Request $request, ContentModeration $moderation): JsonResource|RedirectResponse
+    public function store(Request $request, ContentModeration $moderation): JsonResource|JsonResponse|RedirectResponse
     {
         $validated = $request->validate([
             'body' => ['required', 'string', 'min:1', 'max:500'],
         ]);
 
-        $sanitized = $moderation->sanitize($validated['body']);
+        // Enforce slow mode
+        if (ChatSetting::isSlowModeEnabled()) {
+            $seconds = ChatSetting::slowModeSeconds();
+            $lastMessage = Message::where('user_id', Auth::id())
+                ->latest()
+                ->first();
+
+            if ($lastMessage && $lastMessage->created_at->diffInSeconds(now()) < $seconds) {
+                $remaining = $seconds - $lastMessage->created_at->diffInSeconds(now());
+
+                return response()->json([
+                    'message' => "Slow mode is enabled. Please wait {$remaining} seconds.",
+                    'remaining_seconds' => $remaining,
+                ], 429);
+            }
+        }
+
+        $result = $moderation->process($validated['body']);
+
+        if ($result['blocked']) {
+            return response()->json([
+                'message' => 'Your message was blocked by a content filter.',
+            ], 422);
+        }
 
         $message = Message::create([
             'user_id' => Auth::id(),
-            'body' => $sanitized,
+            'body' => $result['body'],
         ]);
 
         $message->load('user:id,name,chat_color');

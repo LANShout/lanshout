@@ -97,7 +97,7 @@ const mainNavItems = computed<NavItem[]>(() => {
 const rightNavItems: NavItem[] = [
     {
         title: 'GitHub',
-        href: 'https://github.com/LANShout/lanshout',
+        href: 'https://github.com/lan-software/LanShout',
         icon: Github,
     }
 ];
