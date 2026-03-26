@@ -52,8 +52,9 @@ class HandleInertiaRequests extends Middleware
                     'roles' => $user->roles->pluck('name')->toArray(),
                 ] : null,
             ],
-            'isAdmin' => optional($user)->id === 1,
-            'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
+            'isAdmin' => optional($user)->id === 1,            'lancore' => [
+                'enabled' => (bool) config('lancore.enabled'),
+            ],            'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
         ];
     }
 }

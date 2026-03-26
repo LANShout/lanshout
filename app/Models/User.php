@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Database\Factories\UserFactory;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -10,7 +11,7 @@ use Illuminate\Notifications\Notifiable;
 
 class User extends Authenticatable implements MustVerifyEmail
 {
-    /** @use HasFactory<\Database\Factories\UserFactory> */
+    /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable;
 
     /**
@@ -20,10 +21,14 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     protected $fillable = [
         'name',
+        'display_name',
         'email',
         'password',
         'chat_color',
         'locale',
+        'lancore_user_id',
+        'avatar_url',
+        'lancore_synced_at',
     ];
 
     /**
@@ -45,8 +50,14 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return [
             'email_verified_at' => 'datetime',
+            'lancore_synced_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    public function isLanCoreUser(): bool
+    {
+        return $this->lancore_user_id !== null;
     }
 
     /**
