@@ -39,6 +39,46 @@ class LanCoreClient
     }
 
     /**
+     * Build the LanCore SSO authorization URL.
+     *
+     * The browser is redirected here. If the user is already logged in
+     * to LanCore, they are immediately redirected back with a `code`.
+     * If not, LanCore shows a login page first.
+     */
+    public function ssoAuthorizeUrl(?string $redirectUri = null): string
+    {
+        $this->ensureEnabled();
+
+        $redirectUri ??= config('lancore.callback_url')
+            ?? url('/auth/lancore/callback');
+
+        return rtrim(config('lancore.base_url'), '/').'/sso/authorize?'.http_build_query([
+            'app' => config('lancore.app_slug'),
+            'redirect_uri' => $redirectUri,
+        ]);
+    }
+
+    /**
+     * Exchange a single-use SSO authorization code for user data.
+     *
+     * Calls POST /api/integration/sso/exchange with { code: ... }.
+     * The code is 64 characters, valid for 5 minutes, and single-use.
+     */
+    public function exchangeCode(string $code): ?LanCoreUser
+    {
+        $this->ensureEnabled();
+
+        return $this->safeRequest(function () use ($code) {
+            $response = $this->http()
+                ->post('/api/integration/sso/exchange', ['code' => $code]);
+
+            $response->throw();
+
+            return LanCoreUser::fromArray($response->json('data'));
+        });
+    }
+
+    /**
      * Fetch the session user behind a browser cookie / session.
      *
      * Calls GET /api/integration/user/me. Intended for a future
@@ -82,7 +122,9 @@ class LanCoreClient
 
     protected function http(): PendingRequest
     {
-        return Http::baseUrl(config('lancore.base_url'))
+        $apiBaseUrl = config('lancore.internal_url') ?? config('lancore.base_url');
+
+        return Http::baseUrl($apiBaseUrl)
             ->withToken(config('lancore.token'))
             ->timeout(config('lancore.timeout'))
             ->retry(
@@ -125,6 +167,14 @@ class LanCoreClient
             if ($status === 401 || $status === 403) {
                 throw new LanCoreRequestException(
                     'LanCore rejected the integration token.',
+                    $status,
+                    $e,
+                );
+            }
+
+            if ($status === 400) {
+                throw new LanCoreRequestException(
+                    $e->response?->json('error') ?: 'Bad request.',
                     $status,
                     $e,
                 );

@@ -54,6 +54,9 @@ class HandleInertiaRequests extends Middleware
             ],
             'isAdmin' => optional($user)->id === 1,            'lancore' => [
                 'enabled' => (bool) config('lancore.enabled'),
+                'sso_url' => config('lancore.enabled')
+                    ? route('lancore.redirect')
+                    : null,
             ],            'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
         ];
     }

@@ -9,6 +9,7 @@ use App\Services\LanCore\Exceptions\LanCoreRequestException;
 use App\Services\LanCore\LanCoreClient;
 use App\Services\LanCore\UserSyncService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
@@ -21,34 +22,42 @@ class LanCoreAuthController extends Controller
     ) {}
 
     /**
-     * Accept a LanCore user identifier, resolve the user via the
-     * integration API, create or update the local shadow, and log them in.
+     * Redirect the browser to LanCore's SSO authorization endpoint.
      *
-     * This endpoint is designed to be called during a central-login
-     * handoff from LanCore. The caller provides a lancore_user_id
-     * (preferred) or email to identify the user. LanShout then calls
-     * POST /api/integration/user/resolve on LanCore to fetch the
-     * scoped user data.
-     *
-     * The exact browser flow (redirect, callback URL, etc.) will be
-     * finalized once LanCore exposes its SSO redirect endpoints.
+     * If the user is already logged in to LanCore, they will be
+     * immediately redirected back with a code. Otherwise LanCore
+     * shows its login page first.
      */
-    public function callback(Request $request): JsonResponse
+    public function redirect(): RedirectResponse
+    {
+        if (! $this->client->isEnabled()) {
+            abort(503, 'LanCore integration is currently disabled.');
+        }
+
+        return redirect()->away($this->client->ssoAuthorizeUrl());
+    }
+
+    /**
+     * Handle the callback from LanCore SSO.
+     *
+     * Receives a single-use authorization code, exchanges it
+     * server-to-server for user data, creates/updates the local
+     * shadow user, and logs them into LanShout.
+     */
+    public function callback(Request $request): RedirectResponse
     {
         $request->validate([
-            'lancore_user_id' => ['required_without:email', 'nullable', 'integer', 'min:1'],
-            'email' => ['required_without:lancore_user_id', 'nullable', 'email'],
+            'code' => ['required', 'string', 'size:64'],
         ]);
 
         try {
-            $lanCoreUser = $request->filled('lancore_user_id')
-                ? $this->client->resolveUserById((int) $request->input('lancore_user_id'))
-                : $this->client->resolveUserByEmail($request->input('email'));
+            $lanCoreUser = $this->client->exchangeCode($request->query('code'));
 
             if (! $lanCoreUser) {
-                return response()->json([
-                    'message' => 'Unable to resolve user with LanCore.',
-                ], 401);
+                return redirect()->route('home')->with(
+                    'error',
+                    'Unable to resolve your identity. Please try again.',
+                );
             }
 
             $user = $this->syncService->resolveFromUpstream($lanCoreUser);
@@ -57,31 +66,29 @@ class LanCoreAuthController extends Controller
 
             $request->session()->regenerate();
 
-            return response()->json([
-                'message' => 'Authenticated via LanCore.',
-                'redirect' => config('fortify.home', '/'),
-            ]);
+            return redirect()->intended(config('fortify.home', '/'));
         } catch (LanCoreDisabledException) {
-            return response()->json([
-                'message' => 'LanCore integration is currently disabled.',
-            ], 503);
+            abort(503, 'LanCore integration is currently disabled.');
         } catch (LanCoreRequestException $e) {
-            Log::error('LanCore auth callback failed.', [
+            Log::error('LanCore SSO callback failed.', [
                 'error' => $e->getMessage(),
                 'code' => $e->getCode(),
             ]);
 
-            return response()->json([
-                'message' => 'Unable to reach the identity provider. Please try again later.',
-            ], 502);
+            $message = $e->getCode() === 400
+                ? 'Your login link has expired or was already used. Please try again.'
+                : 'Unable to reach the identity provider. Please try again later.';
+
+            return redirect()->route('home')->with('error', $message);
         } catch (InvalidLanCoreUserException $e) {
-            Log::warning('LanCore returned invalid user data during auth.', [
+            Log::warning('LanCore returned invalid user data during SSO.', [
                 'error' => $e->getMessage(),
             ]);
 
-            return response()->json([
-                'message' => 'Received incomplete user information from the identity provider.',
-            ], 422);
+            return redirect()->route('home')->with(
+                'error',
+                'Received incomplete user information from the identity provider.',
+            );
         }
     }
 

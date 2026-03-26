@@ -172,3 +172,82 @@ it('handles response without email scope', function () {
     expect($user->email)->toBeNull()
         ->and($user->username)->toBe('no-email-scope');
 });
+
+// --- SSO methods ---
+
+it('builds the SSO authorize URL correctly', function () {
+    $client = new LanCoreClient;
+    $url = $client->ssoAuthorizeUrl('https://shout.test/auth/lancore/callback');
+
+    expect($url)->toContain('https://lancore.test/sso/authorize')
+        ->and($url)->toContain('app=lanshout')
+        ->and($url)->toContain(urlencode('https://shout.test/auth/lancore/callback'));
+});
+
+it('uses config callback_url as default for SSO authorize URL', function () {
+    config(['lancore.callback_url' => 'https://configured.test/callback']);
+
+    $client = new LanCoreClient;
+    $url = $client->ssoAuthorizeUrl();
+
+    expect($url)->toContain(urlencode('https://configured.test/callback'));
+});
+
+it('throws LanCoreDisabledException when building SSO URL while disabled', function () {
+    config(['lancore.enabled' => false]);
+
+    $client = new LanCoreClient;
+    $client->ssoAuthorizeUrl();
+})->throws(LanCoreDisabledException::class);
+
+it('exchanges an SSO code for user data', function () {
+    Http::fake([
+        'lancore.test/api/integration/sso/exchange' => Http::response([
+            'data' => [
+                'id' => 42,
+                'username' => 'mkohn',
+                'locale' => 'en',
+                'avatar_url' => 'https://lancore.test/avatars/42.jpg',
+                'created_at' => '2025-01-01T00:00:00Z',
+                'email' => 'matt@example.com',
+                'roles' => ['member'],
+            ],
+        ], 200),
+    ]);
+
+    $code = str_repeat('a', 64);
+    $client = new LanCoreClient;
+    $user = $client->exchangeCode($code);
+
+    expect($user)->not->toBeNull()
+        ->and($user->id)->toBe(42)
+        ->and($user->username)->toBe('mkohn')
+        ->and($user->email)->toBe('matt@example.com');
+
+    Http::assertSent(function ($request) use ($code) {
+        return str_contains($request->url(), '/api/integration/sso/exchange')
+            && $request['code'] === $code;
+    });
+});
+
+it('throws LanCoreRequestException on expired SSO code', function () {
+    Http::fake([
+        'lancore.test/api/integration/sso/exchange' => Http::response([
+            'error' => 'Invalid or expired authorization code',
+        ], 400),
+    ]);
+
+    $client = new LanCoreClient;
+    $client->exchangeCode(str_repeat('x', 64));
+})->throws(LanCoreRequestException::class, 'Invalid or expired authorization code');
+
+it('throws LanCoreRequestException when SSO code belongs to wrong app', function () {
+    Http::fake([
+        'lancore.test/api/integration/sso/exchange' => Http::response([
+            'error' => 'Authorization code does not belong to this application',
+        ], 403),
+    ]);
+
+    $client = new LanCoreClient;
+    $client->exchangeCode(str_repeat('y', 64));
+})->throws(LanCoreRequestException::class, 'LanCore rejected the integration token.');

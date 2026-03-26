@@ -45,7 +45,7 @@ readonly class LanCoreUser
             id: (int) $data['id'],
             username: (string) $data['username'],
             locale: $data['locale'] ?? null,
-            avatar: $data['avatar'] ?? null,
+            avatar: $data['avatar_url'] ?? $data['avatar'] ?? null,
             createdAt: $data['created_at'] ?? null,
             email: $data['email'] ?? null,
             roles: $data['roles'] ?? null,

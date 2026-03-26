@@ -29,6 +29,21 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | LanCore Internal URL
+    |--------------------------------------------------------------------------
+    |
+    | Used for server-to-server API calls from within Docker.
+    | When running in containers, 'localhost' in LANCORE_BASE_URL
+    | refers to the browser's host, not the container network.
+    | Set this to a hostname reachable from LanShout's container
+    | (e.g. host.docker.internal). Falls back to base_url if unset.
+    |
+    */
+
+    'internal_url' => env('LANCORE_INTERNAL_URL'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Integration Token
     |--------------------------------------------------------------------------
     |
@@ -38,6 +53,21 @@ return [
     */
 
     'token' => env('LANCORE_TOKEN'),
+
+    /*
+    |--------------------------------------------------------------------------
+    | SSO Settings
+    |--------------------------------------------------------------------------
+    |
+    | The app slug registered in LanCore for this integration, and the
+    | callback URL that LanCore redirects the browser back to after
+    | the user authenticates.
+    |
+    */
+
+    'app_slug' => env('LANCORE_APP_SLUG', 'lanshout'),
+
+    'callback_url' => env('LANCORE_CALLBACK_URL'),
 
     /*
     |--------------------------------------------------------------------------

@@ -3,6 +3,7 @@
 it('has expected config keys', function () {
     expect(config('lancore.enabled'))->toBeBool()
         ->and(config('lancore.base_url'))->toBeString()
+        ->and(config('lancore.app_slug'))->toBeString()
         ->and(config('lancore.timeout'))->toBeInt()
         ->and(config('lancore.retries'))->toBeInt()
         ->and(config('lancore.retry_delay'))->toBeInt();

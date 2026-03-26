@@ -14,6 +14,10 @@ Route::get('/', function () {
         return redirect()->route('chat');
     }
 
+    if (config('lancore.enabled')) {
+        return redirect()->route('lancore.redirect');
+    }
+
     return Inertia::render('Landing', [
         'canRegister' => Features::enabled(Features::registration()),
     ]);
@@ -39,9 +43,10 @@ Route::post('/messages', [MessageController::class, 'store'])
     ->middleware(['auth'])
     ->name('messages.store');
 
-// LanCore authentication routes
+// LanCore SSO routes
 Route::prefix('auth/lancore')->name('lancore.')->group(function () {
-    Route::post('/callback', [LanCoreAuthController::class, 'callback'])->name('callback');
+    Route::get('/redirect', [LanCoreAuthController::class, 'redirect'])->name('redirect');
+    Route::get('/callback', [LanCoreAuthController::class, 'callback'])->name('callback');
     Route::get('/status', [LanCoreAuthController::class, 'status'])->name('status');
 });
 
