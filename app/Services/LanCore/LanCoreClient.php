@@ -17,32 +17,66 @@ class LanCoreClient
         return (bool) config('lancore.enabled');
     }
 
-    public function fetchUserByToken(string $token): ?LanCoreUser
+    /**
+     * Resolve a LanCore user by their upstream ID.
+     *
+     * Calls POST /api/integration/user/resolve with { user_id: ... }.
+     */
+    public function resolveUserById(int $lanCoreUserId): ?LanCoreUser
+    {
+        return $this->resolveUser(['user_id' => $lanCoreUserId]);
+    }
+
+    /**
+     * Resolve a LanCore user by their email address.
+     *
+     * Calls POST /api/integration/user/resolve with { email: ... }.
+     * Requires the user:email scope to be granted to the integration app.
+     */
+    public function resolveUserByEmail(string $email): ?LanCoreUser
+    {
+        return $this->resolveUser(['email' => $email]);
+    }
+
+    /**
+     * Fetch the session user behind a browser cookie / session.
+     *
+     * Calls GET /api/integration/user/me. Intended for a future
+     * seamless browser SSO flow where the user's LanCore session
+     * cookie is forwarded.
+     */
+    public function fetchSessionUser(string $sessionCookie): ?LanCoreUser
     {
         $this->ensureEnabled();
 
-        return $this->safeRequest(function () use ($token) {
+        return $this->safeRequest(function () use ($sessionCookie) {
             $response = $this->http()
-                ->withHeader('Authorization', 'Bearer '.$token)
-                ->post('/api/v1/auth/verify-token');
+                ->withCookies(
+                    ['lancore_session' => $sessionCookie],
+                    parse_url(config('lancore.base_url'), PHP_URL_HOST),
+                )
+                ->get('/api/integration/user/me');
 
             $response->throw();
 
-            return LanCoreUser::fromArray($response->json('user'));
+            return LanCoreUser::fromArray($response->json('data'));
         });
     }
 
-    public function fetchUserById(int $lanCoreUserId): ?LanCoreUser
+    /**
+     * @param  array<string, mixed>  $payload
+     */
+    protected function resolveUser(array $payload): ?LanCoreUser
     {
         $this->ensureEnabled();
 
-        return $this->safeRequest(function () use ($lanCoreUserId) {
+        return $this->safeRequest(function () use ($payload) {
             $response = $this->http()
-                ->get("/api/v1/users/{$lanCoreUserId}");
+                ->post('/api/integration/user/resolve', $payload);
 
             $response->throw();
 
-            return LanCoreUser::fromArray($response->json('user'));
+            return LanCoreUser::fromArray($response->json('data'));
         });
     }
 

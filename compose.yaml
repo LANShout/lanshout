@@ -1,5 +1,6 @@
 services:
     laravel.test:
+        container_name: 'lanshout.test'
         build:
             context: './vendor/laravel/sail/runtimes/8.4'
             dockerfile: Dockerfile
@@ -21,6 +22,7 @@ services:
             - '.:/var/www/html'
         networks:
             - sail
+            - lanparty
         depends_on:
             - pgsql
             - valkey
@@ -72,10 +74,14 @@ services:
           - '${MAILPIT_DASHBOARD_FORWARD_PORT:-8022}:8025'
         networks:
           - sail
-
 networks:
     sail:
         driver: bridge
+    lanparty:
+        external: true
+
+
+
 volumes:
     lanshout-pgsql:
         driver: local

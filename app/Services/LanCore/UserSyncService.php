@@ -33,7 +33,7 @@ class UserSyncService
             return $user;
         }
 
-        $lanCoreUser = $this->client->fetchUserById($user->lancore_user_id);
+        $lanCoreUser = $this->client->resolveUserById($user->lancore_user_id);
 
         if (! $lanCoreUser) {
             Log::warning('Could not refresh user from LanCore.', [
@@ -54,15 +54,20 @@ class UserSyncService
             'username' => $lanCoreUser->username,
         ]);
 
-        $user = User::create([
+        $attributes = [
             'lancore_user_id' => $lanCoreUser->id,
             'name' => $lanCoreUser->username,
-            'display_name' => $lanCoreUser->displayName,
-            'email' => $lanCoreUser->email,
-            'avatar_url' => $lanCoreUser->avatarUrl,
+            'display_name' => $lanCoreUser->username,
+            'avatar_url' => $lanCoreUser->avatar,
             'locale' => $lanCoreUser->locale,
             'lancore_synced_at' => now(),
-        ]);
+        ];
+
+        if ($lanCoreUser->email !== null) {
+            $attributes['email'] = $lanCoreUser->email;
+        }
+
+        $user = User::create($attributes);
 
         $user->forceFill(['email_verified_at' => now()])->save();
 
@@ -71,14 +76,19 @@ class UserSyncService
 
     protected function updateShadow(User $user, LanCoreUser $lanCoreUser): User
     {
-        $user->update([
+        $attributes = [
             'name' => $lanCoreUser->username,
-            'display_name' => $lanCoreUser->displayName,
-            'email' => $lanCoreUser->email,
-            'avatar_url' => $lanCoreUser->avatarUrl,
+            'display_name' => $user->display_name ?: $lanCoreUser->username,
+            'avatar_url' => $lanCoreUser->avatar,
             'locale' => $lanCoreUser->locale,
             'lancore_synced_at' => now(),
-        ]);
+        ];
+
+        if ($lanCoreUser->email !== null) {
+            $attributes['email'] = $lanCoreUser->email;
+        }
+
+        $user->update($attributes);
 
         Log::debug('Updated local shadow user from LanCore.', [
             'user_id' => $user->id,

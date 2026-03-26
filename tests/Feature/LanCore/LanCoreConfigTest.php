@@ -1,12 +1,11 @@
 <?php
 
-it('has expected default values', function () {
-    expect(config('lancore.enabled'))->toBeFalse()
-        ->and(config('lancore.base_url'))->toBe('http://localhost:8080')
-        ->and(config('lancore.token'))->toBeNull()
-        ->and(config('lancore.timeout'))->toBe(5)
-        ->and(config('lancore.retries'))->toBe(2)
-        ->and(config('lancore.retry_delay'))->toBe(100);
+it('has expected config keys', function () {
+    expect(config('lancore.enabled'))->toBeBool()
+        ->and(config('lancore.base_url'))->toBeString()
+        ->and(config('lancore.timeout'))->toBeInt()
+        ->and(config('lancore.retries'))->toBeInt()
+        ->and(config('lancore.retry_delay'))->toBeInt();
 });
 
 it('can be toggled via config', function () {

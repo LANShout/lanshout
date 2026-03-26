@@ -17,6 +17,7 @@ return new class extends Migration
             $table->string('avatar_url')->nullable()->after('locale');
             $table->timestamp('lancore_synced_at')->nullable()->after('avatar_url');
             $table->string('password')->nullable()->change();
+            $table->string('email')->nullable()->change();
         });
     }
 
@@ -30,6 +31,7 @@ return new class extends Migration
                 'lancore_synced_at',
             ]);
             $table->string('password')->nullable(false)->change();
+            $table->string('email')->nullable(false)->change();
         });
     }
 };

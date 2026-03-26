@@ -8,27 +8,27 @@ beforeEach(function () {
     config([
         'lancore.enabled' => true,
         'lancore.base_url' => 'https://lancore.test',
-        'lancore.token' => 'test-integration-token',
+        'lancore.token' => 'lci_test-integration-token',
         'lancore.retries' => 0,
     ]);
 });
 
-it('authenticates a user via LanCore callback', function () {
+it('authenticates a user by lancore_user_id', function () {
     Http::fake([
-        'lancore.test/api/v1/auth/verify-token' => Http::response([
-            'user' => [
+        'lancore.test/api/integration/user/resolve' => Http::response([
+            'data' => [
                 'id' => 42,
                 'username' => 'mkohn',
-                'display_name' => 'Matt Kohn',
-                'email' => 'matt@example.com',
-                'avatar_url' => 'https://lancore.test/avatars/42.jpg',
                 'locale' => 'en',
+                'avatar' => 'https://lancore.test/avatars/42.jpg',
+                'created_at' => '2025-01-01T00:00:00Z',
+                'email' => 'matt@example.com',
             ],
         ], 200),
     ]);
 
     $response = $this->postJson(route('lancore.callback'), [
-        'token' => 'valid-user-token',
+        'lancore_user_id' => 42,
     ]);
 
     $response->assertOk()
@@ -45,6 +45,32 @@ it('authenticates a user via LanCore callback', function () {
         ->and($user->email)->toBe('matt@example.com');
 });
 
+it('authenticates a user by email', function () {
+    Http::fake([
+        'lancore.test/api/integration/user/resolve' => Http::response([
+            'data' => [
+                'id' => 55,
+                'username' => 'jane',
+                'locale' => 'de',
+                'avatar' => null,
+                'created_at' => '2025-06-01T00:00:00Z',
+                'email' => 'jane@example.com',
+            ],
+        ], 200),
+    ]);
+
+    $response = $this->postJson(route('lancore.callback'), [
+        'email' => 'jane@example.com',
+    ]);
+
+    $response->assertOk();
+    $this->assertAuthenticated();
+
+    $user = User::where('lancore_user_id', 55)->first();
+    expect($user)->not->toBeNull()
+        ->and($user->name)->toBe('jane');
+});
+
 it('updates existing shadow user on repeat login', function () {
     User::factory()->lancore(42)->create([
         'name' => 'old',
@@ -52,20 +78,20 @@ it('updates existing shadow user on repeat login', function () {
     ]);
 
     Http::fake([
-        'lancore.test/api/v1/auth/verify-token' => Http::response([
-            'user' => [
+        'lancore.test/api/integration/user/resolve' => Http::response([
+            'data' => [
                 'id' => 42,
                 'username' => 'mkohn',
-                'display_name' => 'Matt Kohn',
-                'email' => 'matt@example.com',
-                'avatar_url' => null,
                 'locale' => null,
+                'avatar' => null,
+                'created_at' => '2025-01-01T00:00:00Z',
+                'email' => 'matt@example.com',
             ],
         ], 200),
     ]);
 
     $response = $this->postJson(route('lancore.callback'), [
-        'token' => 'valid-user-token',
+        'lancore_user_id' => 42,
     ]);
 
     $response->assertOk();
@@ -82,7 +108,7 @@ it('returns 503 when LanCore integration is disabled', function () {
     config(['lancore.enabled' => false]);
 
     $response = $this->postJson(route('lancore.callback'), [
-        'token' => 'some-token',
+        'lancore_user_id' => 42,
     ]);
 
     $response->assertStatus(503)
@@ -95,11 +121,11 @@ it('returns 503 when LanCore integration is disabled', function () {
 
 it('returns 502 when LanCore is unreachable', function () {
     Http::fake([
-        'lancore.test/api/v1/auth/verify-token' => fn () => throw new ConnectionException('Connection refused'),
+        'lancore.test/api/integration/user/resolve' => fn () => throw new ConnectionException('Connection refused'),
     ]);
 
     $response = $this->postJson(route('lancore.callback'), [
-        'token' => 'some-token',
+        'lancore_user_id' => 42,
     ]);
 
     $response->assertStatus(502)
@@ -110,13 +136,13 @@ it('returns 502 when LanCore is unreachable', function () {
     $this->assertGuest();
 });
 
-it('returns 401 when token is invalid', function () {
+it('returns 502 when LanCore rejects integration token', function () {
     Http::fake([
-        'lancore.test/api/v1/auth/verify-token' => Http::response(['error' => 'Unauthorized'], 401),
+        'lancore.test/api/integration/user/resolve' => Http::response(['error' => 'Unauthorized'], 401),
     ]);
 
     $response = $this->postJson(route('lancore.callback'), [
-        'token' => 'invalid-token',
+        'lancore_user_id' => 42,
     ]);
 
     $response->assertStatus(502);
@@ -125,17 +151,16 @@ it('returns 401 when token is invalid', function () {
 
 it('returns 422 when LanCore returns incomplete user data', function () {
     Http::fake([
-        'lancore.test/api/v1/auth/verify-token' => Http::response([
-            'user' => [
+        'lancore.test/api/integration/user/resolve' => Http::response([
+            'data' => [
                 'id' => 0,
                 'username' => '',
-                'email' => '',
             ],
         ], 200),
     ]);
 
     $response = $this->postJson(route('lancore.callback'), [
-        'token' => 'some-token',
+        'lancore_user_id' => 1,
     ]);
 
     $response->assertStatus(422)
@@ -146,11 +171,11 @@ it('returns 422 when LanCore returns incomplete user data', function () {
     $this->assertGuest();
 });
 
-it('validates that token is required', function () {
+it('validates that lancore_user_id or email is required', function () {
     $response = $this->postJson(route('lancore.callback'), []);
 
     $response->assertUnprocessable()
-        ->assertJsonValidationErrors('token');
+        ->assertJsonValidationErrors(['lancore_user_id', 'email']);
 });
 
 it('returns status endpoint correctly when enabled', function () {

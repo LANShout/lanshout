@@ -10,7 +10,7 @@ beforeEach(function () {
     config([
         'lancore.enabled' => true,
         'lancore.base_url' => 'https://lancore.test',
-        'lancore.token' => 'test-token',
+        'lancore.token' => 'lci_test-token',
         'lancore.retries' => 0,
     ]);
 });
@@ -19,10 +19,9 @@ it('creates a new local user from LanCore data', function () {
     $lanCoreUser = new LanCoreUser(
         id: 42,
         username: 'mkohn',
-        displayName: 'Matt Kohn',
-        email: 'matt@example.com',
-        avatarUrl: 'https://lancore.test/avatars/42.jpg',
         locale: 'en',
+        avatar: 'https://lancore.test/avatars/42.jpg',
+        email: 'matt@example.com',
     );
 
     $service = app(UserSyncService::class);
@@ -32,7 +31,7 @@ it('creates a new local user from LanCore data', function () {
         ->and($user->exists)->toBeTrue()
         ->and($user->lancore_user_id)->toBe(42)
         ->and($user->name)->toBe('mkohn')
-        ->and($user->display_name)->toBe('Matt Kohn')
+        ->and($user->display_name)->toBe('mkohn')
         ->and($user->email)->toBe('matt@example.com')
         ->and($user->avatar_url)->toBe('https://lancore.test/avatars/42.jpg')
         ->and($user->locale)->toBe('en')
@@ -41,20 +40,34 @@ it('creates a new local user from LanCore data', function () {
         ->and($user->password)->toBeNull();
 });
 
+it('creates a shadow user without email when scope not granted', function () {
+    $lanCoreUser = new LanCoreUser(
+        id: 55,
+        username: 'no-email',
+        locale: 'de',
+    );
+
+    $service = app(UserSyncService::class);
+    $user = $service->resolveFromUpstream($lanCoreUser);
+
+    expect($user->lancore_user_id)->toBe(55)
+        ->and($user->name)->toBe('no-email')
+        ->and($user->email)->toBeNull();
+});
+
 it('updates an existing shadow user with fresh LanCore data', function () {
     $existing = User::factory()->lancore(42)->create([
         'name' => 'old-name',
-        'display_name' => 'Old Name',
+        'display_name' => 'Custom Display',
         'email' => 'old@example.com',
     ]);
 
     $lanCoreUser = new LanCoreUser(
         id: 42,
         username: 'new-name',
-        displayName: 'New Name',
-        email: 'new@example.com',
-        avatarUrl: 'https://lancore.test/new.jpg',
         locale: 'de',
+        avatar: 'https://lancore.test/new.jpg',
+        email: 'new@example.com',
     );
 
     $service = app(UserSyncService::class);
@@ -62,12 +75,29 @@ it('updates an existing shadow user with fresh LanCore data', function () {
 
     expect($updated->id)->toBe($existing->id)
         ->and($updated->name)->toBe('new-name')
-        ->and($updated->display_name)->toBe('New Name')
+        ->and($updated->display_name)->toBe('Custom Display')
         ->and($updated->email)->toBe('new@example.com')
         ->and($updated->avatar_url)->toBe('https://lancore.test/new.jpg')
         ->and($updated->locale)->toBe('de');
 
     expect(User::count())->toBe(1);
+});
+
+it('does not overwrite email when scope not granted on update', function () {
+    User::factory()->lancore(42)->create([
+        'email' => 'existing@example.com',
+    ]);
+
+    $lanCoreUser = new LanCoreUser(
+        id: 42,
+        username: 'updated',
+        email: null,
+    );
+
+    $service = app(UserSyncService::class);
+    $updated = $service->resolveFromUpstream($lanCoreUser);
+
+    expect($updated->email)->toBe('existing@example.com');
 });
 
 it('does not create a duplicate when lancore_user_id already exists', function () {
@@ -76,8 +106,6 @@ it('does not create a duplicate when lancore_user_id already exists', function (
     $lanCoreUser = new LanCoreUser(
         id: 99,
         username: 'updated',
-        displayName: 'Updated User',
-        email: 'updated@example.com',
     );
 
     $service = app(UserSyncService::class);
@@ -90,8 +118,6 @@ it('throws InvalidLanCoreUserException for invalid user data', function () {
     $invalidUser = new LanCoreUser(
         id: 0,
         username: '',
-        displayName: '',
-        email: '',
     );
 
     $service = app(UserSyncService::class);
@@ -100,14 +126,14 @@ it('throws InvalidLanCoreUserException for invalid user data', function () {
 
 it('refreshes a LanCore user from upstream', function () {
     Http::fake([
-        'lancore.test/api/v1/users/42' => Http::response([
-            'user' => [
+        'lancore.test/api/integration/user/resolve' => Http::response([
+            'data' => [
                 'id' => 42,
                 'username' => 'refreshed',
-                'display_name' => 'Refreshed User',
-                'email' => 'refreshed@example.com',
-                'avatar_url' => null,
                 'locale' => 'de',
+                'avatar' => null,
+                'created_at' => '2025-01-01T00:00:00Z',
+                'email' => 'refreshed@example.com',
             ],
         ], 200),
     ]);
@@ -120,7 +146,7 @@ it('refreshes a LanCore user from upstream', function () {
     $refreshed = $service->refreshFromLanCore($user);
 
     expect($refreshed->name)->toBe('refreshed')
-        ->and($refreshed->display_name)->toBe('Refreshed User');
+        ->and($refreshed->email)->toBe('refreshed@example.com');
 });
 
 it('returns unmodified user when refreshing a non-LanCore user', function () {

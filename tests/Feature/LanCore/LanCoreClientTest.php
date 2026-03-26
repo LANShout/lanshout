@@ -10,7 +10,7 @@ beforeEach(function () {
     config([
         'lancore.enabled' => true,
         'lancore.base_url' => 'https://lancore.test',
-        'lancore.token' => 'test-integration-token',
+        'lancore.token' => 'lci_test-integration-token',
         'lancore.timeout' => 5,
         'lancore.retries' => 0,
         'lancore.retry_delay' => 0,
@@ -26,115 +26,149 @@ it('reports enabled status from config', function () {
     expect($client->isEnabled())->toBeFalse();
 });
 
-it('throws LanCoreDisabledException when disabled', function () {
+it('throws LanCoreDisabledException when resolving by id while disabled', function () {
     config(['lancore.enabled' => false]);
 
     $client = new LanCoreClient;
-    $client->fetchUserByToken('some-token');
+    $client->resolveUserById(1);
 })->throws(LanCoreDisabledException::class);
 
-it('fetches a user by token successfully', function () {
+it('throws LanCoreDisabledException when resolving by email while disabled', function () {
+    config(['lancore.enabled' => false]);
+
+    $client = new LanCoreClient;
+    $client->resolveUserByEmail('test@example.com');
+})->throws(LanCoreDisabledException::class);
+
+it('resolves a user by id successfully', function () {
     Http::fake([
-        'lancore.test/api/v1/auth/verify-token' => Http::response([
-            'user' => [
+        'lancore.test/api/integration/user/resolve' => Http::response([
+            'data' => [
                 'id' => 42,
                 'username' => 'mkohn',
-                'display_name' => 'Matt Kohn',
-                'email' => 'matt@example.com',
-                'avatar_url' => 'https://lancore.test/avatars/42.jpg',
                 'locale' => 'en',
+                'avatar' => 'https://lancore.test/avatars/42.jpg',
+                'created_at' => '2025-01-01T00:00:00Z',
+                'email' => 'matt@example.com',
             ],
         ], 200),
     ]);
 
     $client = new LanCoreClient;
-    $user = $client->fetchUserByToken('valid-user-token');
+    $user = $client->resolveUserById(42);
 
     expect($user)->not->toBeNull()
         ->and($user->id)->toBe(42)
         ->and($user->username)->toBe('mkohn')
-        ->and($user->email)->toBe('matt@example.com');
+        ->and($user->email)->toBe('matt@example.com')
+        ->and($user->avatar)->toBe('https://lancore.test/avatars/42.jpg');
 
     Http::assertSent(function ($request) {
-        return $request->hasHeader('Authorization', 'Bearer valid-user-token')
-            && str_contains($request->url(), '/api/v1/auth/verify-token');
+        return str_contains($request->url(), '/api/integration/user/resolve')
+            && $request['user_id'] === 42;
     });
 });
 
-it('fetches a user by id successfully', function () {
+it('resolves a user by email successfully', function () {
     Http::fake([
-        'lancore.test/api/v1/users/42' => Http::response([
-            'user' => [
+        'lancore.test/api/integration/user/resolve' => Http::response([
+            'data' => [
                 'id' => 42,
                 'username' => 'mkohn',
-                'display_name' => 'Matt Kohn',
-                'email' => 'matt@example.com',
-                'avatar_url' => null,
                 'locale' => 'de',
+                'avatar' => null,
+                'created_at' => '2025-01-01T00:00:00Z',
+                'email' => 'matt@example.com',
             ],
         ], 200),
     ]);
 
     $client = new LanCoreClient;
-    $user = $client->fetchUserById(42);
+    $user = $client->resolveUserByEmail('matt@example.com');
 
     expect($user)->not->toBeNull()
         ->and($user->id)->toBe(42)
         ->and($user->locale)->toBe('de');
+
+    Http::assertSent(function ($request) {
+        return str_contains($request->url(), '/api/integration/user/resolve')
+            && $request['email'] === 'matt@example.com';
+    });
 });
 
 it('throws LanCoreRequestException on 401 response', function () {
     Http::fake([
-        'lancore.test/api/v1/auth/verify-token' => Http::response(['error' => 'Unauthorized'], 401),
+        'lancore.test/api/integration/user/resolve' => Http::response(['error' => 'Unauthorized'], 401),
     ]);
 
     $client = new LanCoreClient;
-    $client->fetchUserByToken('invalid-token');
+    $client->resolveUserById(1);
 })->throws(LanCoreRequestException::class, 'LanCore rejected the integration token.');
 
 it('throws LanCoreRequestException on 403 response', function () {
     Http::fake([
-        'lancore.test/api/v1/auth/verify-token' => Http::response(['error' => 'Forbidden'], 403),
+        'lancore.test/api/integration/user/resolve' => Http::response(['error' => 'Forbidden'], 403),
     ]);
 
     $client = new LanCoreClient;
-    $client->fetchUserByToken('bad-token');
+    $client->resolveUserById(1);
 })->throws(LanCoreRequestException::class, 'LanCore rejected the integration token.');
 
 it('throws LanCoreRequestException on 500 server error', function () {
     Http::fake([
-        'lancore.test/api/v1/auth/verify-token' => Http::response('Internal Server Error', 500),
+        'lancore.test/api/integration/user/resolve' => Http::response('Internal Server Error', 500),
     ]);
 
     $client = new LanCoreClient;
-    $client->fetchUserByToken('some-token');
+    $client->resolveUserById(1);
 })->throws(LanCoreRequestException::class, 'LanCore request failed with status 500.');
 
 it('throws LanCoreRequestException when LanCore is unreachable', function () {
     Http::fake([
-        'lancore.test/api/v1/auth/verify-token' => fn () => throw new ConnectionException('Connection refused'),
+        'lancore.test/api/integration/user/resolve' => fn () => throw new ConnectionException('Connection refused'),
     ]);
 
     $client = new LanCoreClient;
-    $client->fetchUserByToken('some-token');
+    $client->resolveUserById(1);
 })->throws(LanCoreRequestException::class, 'LanCore is unreachable.');
 
 it('sends the integration token as a bearer header', function () {
     Http::fake([
-        'lancore.test/api/v1/users/1' => Http::response([
-            'user' => [
+        'lancore.test/api/integration/user/resolve' => Http::response([
+            'data' => [
                 'id' => 1,
                 'username' => 'test',
-                'display_name' => 'Test',
-                'email' => 'test@example.com',
+                'locale' => null,
+                'avatar' => null,
+                'created_at' => '2025-01-01T00:00:00Z',
             ],
         ], 200),
     ]);
 
     $client = new LanCoreClient;
-    $client->fetchUserById(1);
+    $client->resolveUserById(1);
 
     Http::assertSent(function ($request) {
-        return $request->hasHeader('Authorization', 'Bearer test-integration-token');
+        return $request->hasHeader('Authorization', 'Bearer lci_test-integration-token');
     });
+});
+
+it('handles response without email scope', function () {
+    Http::fake([
+        'lancore.test/api/integration/user/resolve' => Http::response([
+            'data' => [
+                'id' => 10,
+                'username' => 'no-email-scope',
+                'locale' => 'en',
+                'avatar' => null,
+                'created_at' => '2025-06-01T00:00:00Z',
+            ],
+        ], 200),
+    ]);
+
+    $client = new LanCoreClient;
+    $user = $client->resolveUserById(10);
+
+    expect($user->email)->toBeNull()
+        ->and($user->username)->toBe('no-email-scope');
 });

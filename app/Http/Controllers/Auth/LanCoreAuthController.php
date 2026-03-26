@@ -21,26 +21,33 @@ class LanCoreAuthController extends Controller
     ) {}
 
     /**
-     * Accept a LanCore user-token, resolve the upstream user,
-     * create or update the local shadow, and log them in.
+     * Accept a LanCore user identifier, resolve the user via the
+     * integration API, create or update the local shadow, and log them in.
      *
-     * This endpoint is designed to be called by LanCore during a
-     * central-login handoff. The exact browser flow around it
-     * (redirect, callback, etc.) will be finalized once LanCore
-     * exposes its SSO endpoints.
+     * This endpoint is designed to be called during a central-login
+     * handoff from LanCore. The caller provides a lancore_user_id
+     * (preferred) or email to identify the user. LanShout then calls
+     * POST /api/integration/user/resolve on LanCore to fetch the
+     * scoped user data.
+     *
+     * The exact browser flow (redirect, callback URL, etc.) will be
+     * finalized once LanCore exposes its SSO redirect endpoints.
      */
     public function callback(Request $request): JsonResponse
     {
         $request->validate([
-            'token' => ['required', 'string'],
+            'lancore_user_id' => ['required_without:email', 'nullable', 'integer', 'min:1'],
+            'email' => ['required_without:lancore_user_id', 'nullable', 'email'],
         ]);
 
         try {
-            $lanCoreUser = $this->client->fetchUserByToken($request->input('token'));
+            $lanCoreUser = $request->filled('lancore_user_id')
+                ? $this->client->resolveUserById((int) $request->input('lancore_user_id'))
+                : $this->client->resolveUserByEmail($request->input('email'));
 
             if (! $lanCoreUser) {
                 return response()->json([
-                    'message' => 'Unable to verify token with LanCore.',
+                    'message' => 'Unable to resolve user with LanCore.',
                 ], 401);
             }
 
