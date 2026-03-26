@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Auth;
 
+use App\Actions\LanCore\SyncUserRolesFromLanCore;
 use App\Http\Controllers\Controller;
 use App\Services\LanCore\Exceptions\InvalidLanCoreUserException;
 use App\Services\LanCore\Exceptions\LanCoreDisabledException;
@@ -19,6 +20,7 @@ class LanCoreAuthController extends Controller
     public function __construct(
         private LanCoreClient $client,
         private UserSyncService $syncService,
+        private SyncUserRolesFromLanCore $syncRoles,
     ) {}
 
     /**
@@ -61,6 +63,8 @@ class LanCoreAuthController extends Controller
             }
 
             $user = $this->syncService->resolveFromUpstream($lanCoreUser);
+
+            $this->syncRoles->execute($user, $lanCoreUser);
 
             Auth::login($user, remember: true);
 
