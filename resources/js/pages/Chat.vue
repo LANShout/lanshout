@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue';
 import { Head } from '@inertiajs/vue3';
+import { useEchoPublic } from '@laravel/echo-vue';
 import { ref, onMounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 import ChatWall from '../components/chat/ChatWall.vue';
@@ -9,7 +10,7 @@ import ChatInput from '../components/chat/ChatInput.vue';
 const { t } = useI18n();
 
 interface User { id: number; name: string; chat_color?: string | null }
-interface Message { id: number; body: string; created_at: string; user: User }
+interface Message { id: number; body: string; created_at: string; user: User | null }
 interface PaginationMeta {
   current_page: number;
   last_page: number;
@@ -86,6 +87,15 @@ async function submitMessage(body: string) {
 // Load initial messages when component mounts
 onMounted(() => {
   loadMoreMessages();
+});
+
+// Listen for new messages from other users via WebSocket
+useEchoPublic('chat', 'MessageSent', (e: Message) => {
+  // Avoid duplicating a message we already added locally
+  if (!messages.value.some((m) => m.id === e.id)) {
+    messages.value = [...messages.value, e];
+    scrollToBottomFlag.value = true;
+  }
 });
 </script>
 

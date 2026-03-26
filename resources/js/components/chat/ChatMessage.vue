@@ -11,7 +11,7 @@ type Message = {
   id: number
   body: string
   created_at: string
-  user: User
+  user: User | null
 }
 
 const props = defineProps<{
@@ -33,7 +33,12 @@ function hashStringToColor(str: string): string {
   return `hsl(${hue}, ${saturation}%, ${lightness}%)`
 }
 
+const isSystem = computed(() => !props.message.user)
+
 const usernameColor = computed(() => {
+  if (isSystem.value) {
+    return undefined
+  }
   // Use custom color if set, otherwise hash the username
   if (props.message.user?.chat_color) {
     return props.message.user.chat_color
@@ -47,16 +52,19 @@ const formattedTime = computed(() => {
 </script>
 
 <template>
-  <div class="flex flex-col rounded bg-black/2 p-2 dark:bg-white/5">
+  <div :class="[
+    'flex flex-col rounded p-2',
+    isSystem ? 'bg-amber-50 dark:bg-amber-950/30' : 'bg-black/2 dark:bg-white/5'
+  ]">
     <div class="text-xs text-muted-foreground">
       <span
-        class="font-medium"
-        :style="{ color: usernameColor }"
+        :class="['font-medium', isSystem ? 'italic text-amber-600 dark:text-amber-400' : '']"
+        :style="isSystem ? undefined : { color: usernameColor }"
       >
-        {{ message.user?.name ?? 'User' }}
+        {{ isSystem ? '[System]' : (message.user?.name ?? 'User') }}
       </span>
       <span class="ml-2">{{ formattedTime }}</span>
     </div>
-    <div class="whitespace-pre-wrap break-words text-sm">{{ message.body }}</div>
+    <div :class="['whitespace-pre-wrap break-words text-sm', isSystem ? 'italic text-muted-foreground' : '']">{{ message.body }}</div>
   </div>
 </template>

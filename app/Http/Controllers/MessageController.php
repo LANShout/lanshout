@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\MessageSent;
 use App\Models\Message;
 use App\Services\ContentModeration;
 use Illuminate\Http\RedirectResponse;
@@ -36,6 +37,8 @@ class MessageController extends Controller
         ]);
 
         $message->load('user:id,name,chat_color');
+
+        MessageSent::dispatch($message);
 
         return new JsonResource($message);
     }

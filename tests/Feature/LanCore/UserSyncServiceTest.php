@@ -10,6 +10,7 @@ beforeEach(function () {
     config([
         'lancore.enabled' => true,
         'lancore.base_url' => 'https://lancore.test',
+        'lancore.internal_url' => null,
         'lancore.token' => 'lci_test-token',
         'lancore.retries' => 0,
     ]);

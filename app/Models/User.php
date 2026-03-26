@@ -29,6 +29,13 @@ class User extends Authenticatable implements MustVerifyEmail
         'lancore_user_id',
         'avatar_url',
         'lancore_synced_at',
+        'is_blocked',
+        'block_reason',
+        'blocked_at',
+        'blocked_by',
+        'timed_out_until',
+        'timeout_reason',
+        'timed_out_by',
     ];
 
     /**
@@ -52,12 +59,30 @@ class User extends Authenticatable implements MustVerifyEmail
             'email_verified_at' => 'datetime',
             'lancore_synced_at' => 'datetime',
             'password' => 'hashed',
+            'is_blocked' => 'boolean',
+            'blocked_at' => 'datetime',
+            'timed_out_until' => 'datetime',
         ];
     }
 
     public function isLanCoreUser(): bool
     {
         return $this->lancore_user_id !== null;
+    }
+
+    public function isBlocked(): bool
+    {
+        return $this->is_blocked;
+    }
+
+    public function isTimedOut(): bool
+    {
+        return $this->timed_out_until !== null && $this->timed_out_until->isFuture();
+    }
+
+    public function isModerator(): bool
+    {
+        return $this->hasAnyRole(['super_admin', 'admin', 'moderator']);
     }
 
     /**
