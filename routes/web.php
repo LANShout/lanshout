@@ -45,6 +45,10 @@ Route::post('/messages', [MessageController::class, 'store'])
     ->middleware(['auth', 'can.chat'])
     ->name('messages.store');
 
+Route::post('/chat/mark-read', [MessageController::class, 'markRead'])
+    ->middleware(['auth'])
+    ->name('chat.mark-read');
+
 // Chat moderation & settings routes (moderator/admin only)
 Route::middleware(['auth', 'moderator'])->prefix('chat')->name('chat.')->group(function () {
     Route::get('/settings', [ChatSettingsController::class, 'index'])->name('settings');

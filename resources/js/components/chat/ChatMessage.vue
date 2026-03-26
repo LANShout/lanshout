@@ -10,6 +10,8 @@ type User = {
 type Message = {
   id: number
   body: string
+  type?: string | null
+  priority?: string | null
   created_at: string
   user: User | null
 }
@@ -34,6 +36,8 @@ function hashStringToColor(str: string): string {
 }
 
 const isSystem = computed(() => !props.message.user)
+const isAnnouncement = computed(() => props.message.type === 'announcement')
+const priority = computed(() => props.message.priority ?? 'normal')
 
 const usernameColor = computed(() => {
   if (isSystem.value) {
@@ -49,22 +53,56 @@ const usernameColor = computed(() => {
 const formattedTime = computed(() => {
   return new Date(props.message.created_at).toLocaleTimeString()
 })
+
+const announcementClasses = computed(() => {
+  if (!isAnnouncement.value) return ''
+  if (priority.value === 'emergency') {
+    return 'border-l-4 border-red-500 bg-red-50 dark:bg-red-950/30'
+  }
+  if (priority.value === 'silent') {
+    return 'bg-muted/40 dark:bg-muted/20 opacity-75'
+  }
+  // normal
+  return 'border-l-4 border-blue-400 bg-blue-50 dark:bg-blue-950/30'
+})
+
+const labelText = computed(() => {
+  if (!isAnnouncement.value) {
+    return isSystem.value ? '[System]' : (props.message.user?.name ?? 'User')
+  }
+  if (priority.value === 'emergency') return '🚨 Announcement'
+  if (priority.value === 'silent') return 'Announcement'
+  return '📢 Announcement'
+})
+
+const labelClasses = computed(() => {
+  if (isAnnouncement.value) {
+    if (priority.value === 'emergency') return 'font-semibold text-red-600 dark:text-red-400'
+    if (priority.value === 'silent') return 'font-medium text-muted-foreground'
+    return 'font-semibold text-blue-600 dark:text-blue-400'
+  }
+  return isSystem.value ? 'font-medium italic text-amber-600 dark:text-amber-400' : 'font-medium'
+})
 </script>
 
 <template>
   <div :class="[
     'flex flex-col rounded p-2',
-    isSystem ? 'bg-amber-50 dark:bg-amber-950/30' : 'bg-black/2 dark:bg-white/5'
+    isAnnouncement ? announcementClasses : (isSystem ? 'bg-amber-50 dark:bg-amber-950/30' : 'bg-black/2 dark:bg-white/5')
   ]">
     <div class="text-xs text-muted-foreground">
       <span
-        :class="['font-medium', isSystem ? 'italic text-amber-600 dark:text-amber-400' : '']"
-        :style="isSystem ? undefined : { color: usernameColor }"
+        :class="labelClasses"
+        :style="(!isSystem && !isAnnouncement) ? { color: usernameColor } : undefined"
       >
-        {{ isSystem ? '[System]' : (message.user?.name ?? 'User') }}
+        {{ labelText }}
       </span>
       <span class="ml-2">{{ formattedTime }}</span>
     </div>
-    <div :class="['whitespace-pre-wrap break-words text-sm', isSystem ? 'italic text-muted-foreground' : '']">{{ message.body }}</div>
+    <div :class="[
+      'whitespace-pre-wrap break-words text-sm',
+      isAnnouncement && priority === 'emergency' ? 'font-medium' : '',
+      (isSystem && !isAnnouncement) ? 'italic text-muted-foreground' : ''
+    ]">{{ message.body }}</div>
   </div>
 </template>

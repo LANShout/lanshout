@@ -118,7 +118,9 @@
     "loadingMessages": "Loading messages...",
     "errorLoading": "Failed to load messages",
     "errorSending": "Failed to post message",
-    "retry": "Retry"
+    "retry": "Retry",
+    "newMessages": "New messages",
+    "moreUnreadAbove": "{count} unread messages above"
   },
   "dashboard": {
     "title": "Dashboard",

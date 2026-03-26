@@ -10,6 +10,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use Inertia\Response as InertiaResponse;
@@ -70,6 +71,24 @@ class MessageController extends Controller
 
     public function page(): InertiaResponse
     {
-        return Inertia::render('Chat');
+        $user = Auth::user();
+        $lastReadAt = $user?->last_chat_read_at;
+
+        $unreadCount = $lastReadAt
+            ? Message::where('created_at', '>', $lastReadAt)->count()
+            : Message::count();
+
+        return Inertia::render('Chat', [
+            'lastReadAt' => $lastReadAt?->toISOString(),
+            'unreadCount' => $unreadCount,
+            'isModerator' => $user?->isModerator() ?? false,
+        ]);
+    }
+
+    public function markRead(): Response
+    {
+        Auth::user()->update(['last_chat_read_at' => now()]);
+
+        return response()->noContent();
     }
 }

@@ -118,7 +118,9 @@
     "loadingMessages": "Nachrichten werden geladen...",
     "errorLoading": "Fehler beim Laden der Nachrichten",
     "errorSending": "Fehler beim Senden der Nachricht",
-    "retry": "Wiederholen"
+    "retry": "Wiederholen",
+    "newMessages": "Neue Nachrichten",
+    "moreUnreadAbove": "{count} ungelesene Nachrichten darüber"
   },
   "dashboard": {
     "title": "Dashboard",

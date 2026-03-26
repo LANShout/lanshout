@@ -36,6 +36,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'timed_out_until',
         'timeout_reason',
         'timed_out_by',
+        'last_chat_read_at',
     ];
 
     /**
@@ -62,6 +63,7 @@ class User extends Authenticatable implements MustVerifyEmail
             'is_blocked' => 'boolean',
             'blocked_at' => 'datetime',
             'timed_out_until' => 'datetime',
+            'last_chat_read_at' => 'datetime',
         ];
     }
 

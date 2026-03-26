@@ -84,4 +84,16 @@ return [
 
     'retry_delay' => env('LANCORE_RETRY_DELAY', 100),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Webhook Secret
+    |--------------------------------------------------------------------------
+    |
+    | The shared secret used to verify the HMAC-SHA256 signature on incoming
+    | webhook requests from LanCore. Leave empty to skip verification.
+    |
+    */
+
+    'webhook_secret' => env('LANCORE_WEBHOOK_SECRET'),
+
 ];
