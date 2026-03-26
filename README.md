@@ -9,16 +9,6 @@ Prerequisites
 - Composer
 - Node.js 20+ and npm 10+
 
-1) Start infrastructure
-- docker compose up -d
-  - Postgres: localhost:5432 (db=lanshout, user=lanshout, pass=lanshout)
-  - Redis: localhost:6379
-  - MailHog: SMTP on 1025, Web UI at http://localhost:8025
-
-You can also use npm helpers:
-- npm run infra:up
-- npm run infra:down
-
 2) Environment configuration
 This repo already includes an .env configured for the Docker services:
 - DB_CONNECTION=pgsql
