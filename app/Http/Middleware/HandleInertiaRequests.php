@@ -54,6 +54,7 @@ class HandleInertiaRequests extends Middleware
                     'is_blocked' => $user->isBlocked(),
                     'is_timed_out' => $user->isTimedOut(),
                     'timed_out_until' => $user->timed_out_until?->toISOString(),
+                    'is_lancore_user' => $user->isLanCoreUser(),
                 ] : null,
             ],
             'isAdmin' => optional($user)->id === 1,            'lancore' => [

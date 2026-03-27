@@ -4,7 +4,7 @@ import InputError from '@/components/InputError.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import SettingsLayout from '@/layouts/settings/Layout.vue';
 import { edit } from '@/routes/user-password';
-import { Form, Head } from '@inertiajs/vue3';
+import { Form, Head, usePage } from '@inertiajs/vue3';
 import { ref } from 'vue';
 
 import HeadingSmall from '@/components/HeadingSmall.vue';
@@ -22,6 +22,9 @@ const breadcrumbItems: BreadcrumbItem[] = [
 
 const passwordInput = ref<HTMLInputElement | null>(null);
 const currentPasswordInput = ref<HTMLInputElement | null>(null);
+
+const page = usePage();
+const user = page.props.auth.user;
 </script>
 
 <template>
@@ -35,7 +38,15 @@ const currentPasswordInput = ref<HTMLInputElement | null>(null);
                     description="Ensure your account is using a long, random password to stay secure"
                 />
 
+                <div
+                    v-if="user.is_lancore_user"
+                    class="rounded-md border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-700 dark:border-blue-800 dark:bg-blue-900/20 dark:text-blue-300"
+                >
+                    Your password is managed by your LanCore account. Please update it there.
+                </div>
+
                 <Form
+                    v-else
                     v-bind="PasswordController.update.form()"
                     :options="{
                         preserveScroll: true,

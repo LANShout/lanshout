@@ -7,9 +7,13 @@ import { edit as editAppearance } from '@/routes/appearance';
 import { edit as editProfile } from '@/routes/profile';
 import { edit as editPassword } from '@/routes/user-password';
 import { type NavItem } from '@/types';
-import { Link } from '@inertiajs/vue3';
+import { Link, usePage } from '@inertiajs/vue3';
+import { computed } from 'vue';
 
-const sidebarNavItems: NavItem[] = [
+const page = usePage();
+const user = computed(() => page.props.auth.user);
+
+const allNavItems: NavItem[] = [
     {
         title: 'Profile',
         href: editProfile(),
@@ -23,6 +27,10 @@ const sidebarNavItems: NavItem[] = [
         href: editAppearance(),
     },
 ];
+
+const sidebarNavItems = computed(() =>
+    allNavItems.filter((item) => !(user.value?.is_lancore_user && item.title === 'Password')),
+);
 
 const currentPath = typeof window !== undefined ? window.location.pathname : '';
 </script>

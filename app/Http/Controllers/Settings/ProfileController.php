@@ -45,6 +45,8 @@ class ProfileController extends Controller
      */
     public function destroy(Request $request): RedirectResponse
     {
+        abort_if($request->user()->isLanCoreUser(), 403, 'SSO accounts cannot be deleted from here.');
+
         $request->validate([
             'password' => ['required', 'current_password'],
         ]);

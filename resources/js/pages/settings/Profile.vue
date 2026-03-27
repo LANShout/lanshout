@@ -43,6 +43,13 @@ const user = page.props.auth.user;
                     description="Update your name and email address"
                 />
 
+                <div
+                    v-if="user.is_lancore_user"
+                    class="rounded-md border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-700 dark:border-blue-800 dark:bg-blue-900/20 dark:text-blue-300"
+                >
+                    Your name and email address are managed by LanCore and cannot be changed here.
+                </div>
+
                 <Form
                     v-bind="ProfileController.update.form()"
                     class="space-y-6"
@@ -55,6 +62,7 @@ const user = page.props.auth.user;
                             class="mt-1 block w-full"
                             name="name"
                             :default-value="user.name"
+                            :disabled="user.is_lancore_user"
                             required
                             autocomplete="name"
                             placeholder="Full name"
@@ -70,6 +78,7 @@ const user = page.props.auth.user;
                             class="mt-1 block w-full"
                             name="email"
                             :default-value="user.email"
+                            :disabled="user.is_lancore_user"
                             required
                             autocomplete="username"
                             placeholder="Email address"
@@ -108,7 +117,7 @@ const user = page.props.auth.user;
                         <InputError class="mt-2" :message="errors.locale" />
                     </div>
 
-                    <div v-if="mustVerifyEmail && !user.email_verified_at">
+                    <div v-if="!user.is_lancore_user && mustVerifyEmail && !user.email_verified_at">
                         <p class="-mt-4 text-sm text-muted-foreground">
                             Your email address is unverified.
                             <Link
@@ -153,7 +162,7 @@ const user = page.props.auth.user;
                 </Form>
             </div>
 
-            <DeleteUser />
+            <DeleteUser v-if="!user.is_lancore_user" />
         </SettingsLayout>
     </AppLayout>
 </template>

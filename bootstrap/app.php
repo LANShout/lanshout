@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\BlockLanCoreUserFromFortifyFeatures;
 use App\Http\Middleware\EnsureUserCanChat;
 use App\Http\Middleware\EnsureUserIsModerator;
 use App\Http\Middleware\HandleAppearance;
@@ -25,6 +26,7 @@ return Application::configure(basePath: dirname(__DIR__))
             HandleAppearance::class,
             HandleInertiaRequests::class,
             AddLinkHeadersForPreloadedAssets::class,
+            BlockLanCoreUserFromFortifyFeatures::class,
         ]);
 
         $middleware->alias([
