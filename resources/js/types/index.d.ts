@@ -17,6 +17,12 @@ export interface NavItem {
     isActive?: boolean;
 }
 
+export interface LanCoreProps {
+    enabled: boolean;
+    sso_url: string | null;
+    base_url: string | null;
+}
+
 export type AppPageProps<
     T extends Record<string, unknown> = Record<string, unknown>,
 > = T & {
@@ -24,6 +30,7 @@ export type AppPageProps<
     quote: { message: string; author: string };
     auth: Auth;
     sidebarOpen: boolean;
+    lancore: LanCoreProps;
 };
 
 export interface User {

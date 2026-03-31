@@ -35,7 +35,7 @@ import admin from '@/routes/admin';
 import { dashboard } from '@/routes';
 import type { BreadcrumbItem, NavItem } from '@/types';
 import { Link, usePage } from '@inertiajs/vue3';
-import { Github, LayoutGrid, Menu, Shield } from 'lucide-vue-next';
+import { ExternalLink, Github, LayoutGrid, Menu, Shield } from 'lucide-vue-next';
 import { computed } from 'vue';
 
 interface Props {
@@ -48,6 +48,7 @@ const props = withDefaults(defineProps<Props>(), {
 
 const page = usePage();
 const auth = computed(() => page.props.auth);
+const lancore = computed(() => page.props.lancore);
 
 const isCurrentRoute = computed(
     () => (url: string) => urlIsActive(url, page.url),
@@ -94,13 +95,25 @@ const mainNavItems = computed<NavItem[]>(() => {
     return items;
 });
 
-const rightNavItems: NavItem[] = [
-    {
-        title: 'GitHub',
-        href: 'https://github.com/lan-software/LanShout',
-        icon: Github,
+const rightNavItems = computed<NavItem[]>(() => {
+    const items: NavItem[] = [
+        {
+            title: 'GitHub',
+            href: 'https://github.com/lan-software/LanShout',
+            icon: Github,
+        },
+    ];
+
+    if (lancore.value?.enabled && lancore.value.base_url) {
+        items.push({
+            title: 'Back to LanCore',
+            href: lancore.value.base_url,
+            icon: ExternalLink,
+        });
     }
-];
+
+    return items;
+});
 
 const toUrl = (href: string) => href;
 

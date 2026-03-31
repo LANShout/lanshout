@@ -6,11 +6,14 @@ import { useEchoPublic } from '@laravel/echo-vue';
 import { ref, onMounted, computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { Settings } from 'lucide-vue-next';
+import { usePage } from '@inertiajs/vue3';
 import ChatWall from '../components/chat/ChatWall.vue';
 import ChatInput from '../components/chat/ChatInput.vue';
 import chat from '@/routes/chat';
 
 const { t } = useI18n();
+const page = usePage();
+const currentUserId = computed(() => page.props.auth.user?.id);
 
 interface User { id: number; name: string; chat_color?: string | null }
 interface Message { id: number; body: string; type?: string | null; priority?: string | null; created_at: string; user: User | null }
@@ -125,8 +128,12 @@ onMounted(async () => {
   markRead();
 });
 
-// Listen for new messages from other users via WebSocket
+// Listen for new messages via WebSocket.
+// Skip messages sent by the current user — they are added optimistically
+// in submitMessage() to avoid the race condition where the broadcast arrives
+// before the POST response is processed, causing the message to appear twice.
 useEchoPublic('chat', 'MessageSent', (e: Message) => {
+  if (e.user?.id === currentUserId.value) return;
   if (!messages.value.some((m) => m.id === e.id)) {
     messages.value = [...messages.value, e];
     scrollToBottomFlag.value = true;

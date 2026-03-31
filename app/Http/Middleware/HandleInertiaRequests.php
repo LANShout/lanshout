@@ -62,6 +62,9 @@ class HandleInertiaRequests extends Middleware
                 'sso_url' => config('lancore.enabled')
                     ? route('lancore.redirect')
                     : null,
+                'base_url' => config('lancore.enabled')
+                    ? config('lancore.base_url')
+                    : null,
             ],            'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
             'chatSettings' => [
                 'slowMode' => [
